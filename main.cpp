@@ -13,27 +13,27 @@ void Exit() {
 
 
 void Initialize() {
-	cout << "Initialize command recognized. Doing something...\n";
+	cout << "initialize command recognized. Doing something...\n";
 	// Add initialization code here
 }
 
 void Screen() {
-	cout << "Screen command recognized. Doing something...\n";
+	cout << "screen command recognized. Doing something...\n";
 	// Add screen code here
 }
 
 void SchedulerTest() {
-	cout << "Scheduler test command recognized. Doing something...\n";
+	cout << "scheduler-test command recognized. Doing something...\n";
 	// Add scheduler test code here
 }
 
 void SchedulerStop() {
-	cout << "Scheduler stop command recognized. Doing something...\n";
+	cout << "scheduler-stop command recognized. Doing something...\n";
 	// Add scheduler stop code here
 }
 
 void ReportUtil() {
-	cout << "Report utilization command recognized. Doing something...\n";
+	cout << "report-util command recognized. Doing something...\n";
 	// Add report utilization code here
 }
 
@@ -75,7 +75,7 @@ int main() {
             Clear();
         }
         else {
-            cout << command << " is not a unrecognized command. Please try again.\n";
+            cout << command << " is not a recognized command. Please try again.\n";
         }
 
     }
