@@ -2,6 +2,10 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <unordered_map>
+#include "Console.h"
+#include "ConsoleManager.h"
+#include <cstdlib>
 
 bool running = true;
 
@@ -17,9 +21,18 @@ void Initialize() {
 	// Add initialization code here
 }
 
-void Screen() {
-	cout << "screen command recognized. Doing something...\n";
-	// Add screen code here
+void Screen(std::vector<std::string> args) {
+    string processName = args[1];
+    shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
+
+    ConsoleManager::getInstance()->registerConsole(consoleScreen);
+    ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+
+    string input, command;
+    cout << "Enter command: ";
+    getline(cin, input); // Gets entire line
+    istringstream iss(input); // Parses each string token 
+    iss >> command;
 }
 
 void SchedulerTest() {
@@ -44,14 +57,24 @@ void Clear() {
 
 int main() {
     // Display start interface
-    display_ASCII();
+    
     string input, command; 
 
+    ConsoleManager::initialize();
+
     while (running) {
+        display_ASCII();
         cout << "Enter command: ";
         getline(cin, input); // Gets entire line
         istringstream iss(input); // Parses each string token 
-        iss >> command; 
+        iss >> command;
+
+        std::vector<std::string> args;
+        std::string word;
+
+        while (iss >> word) {
+            args.push_back(word); // gets "north" and "fast"
+        }
 
         if (command == "exit") {
             Exit();
@@ -60,12 +83,14 @@ int main() {
             Initialize();
         }
         else if (command == "screen") {
-            Screen();
+            system("cls");
+            Screen(args);
+       /*     cout << args[1] << endl;*/
         }
         else if (command == "scheduler-test") {
             SchedulerTest();
         }
-        else if (command == "scheduler-stop") {
+        else if (command == "scheduler-stop") { 
             SchedulerStop();
         }
         else if (command == "report-util") {
