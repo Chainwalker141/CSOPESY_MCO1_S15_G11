@@ -22,17 +22,56 @@ void Initialize() {
 }
 
 void Screen(std::vector<std::string> args) {
-    string processName = args[1];
-    shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
+    try {
 
-    ConsoleManager::getInstance()->registerConsole(consoleScreen);
-    ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+        bool screenRunning = true;
 
-    string input, command;
-    cout << "Enter command: ";
-    getline(cin, input); // Gets entire line
-    istringstream iss(input); // Parses each string token 
-    iss >> command;
+        while (screenRunning) {
+            if (args.size() < 2 || args.size() > 2) { // incorrect arguments checker
+                throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
+            }
+
+            string screenCommand = args[0]; // determines if -s or -r
+            string processName = args[1];
+            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
+
+            if (screenCommand == "-s") { // create a screen
+                cout << "screen created\n";
+                ConsoleManager::getInstance()->registerConsole(consoleScreen);
+                ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+            }
+            else if (screenCommand == "-r") { // resume an existing screen
+                cout << "screen resumed\n";
+
+                // logic to check if screen exists would be better if here tho idk how to implement
+                // current checker is in drawConsole()
+
+                ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+            }
+            else { // invalid command inputs
+                throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
+            }
+
+            string input, command;
+            cout << "Enter command: ";
+            getline(cin, input); // Gets entire line
+            istringstream iss(input); // Parses each string token 
+            iss >> command;
+
+            if (command == "exit") { // to exit screen display
+                system("cls");
+                screenRunning = false;
+            }
+            else {
+                system("cls");
+                cout << "Command unrecognized\n\n";
+            }
+        }
+    }
+    catch (exception& e) {
+        cout << "An error occurred: " << e.what();
+    }
+    
 }
 
 void SchedulerTest() {
@@ -52,7 +91,6 @@ void ReportUtil() {
 
 void Clear() {
     system("CLS");
-    display_ASCII();
 }
 
 int main() {
@@ -86,6 +124,7 @@ int main() {
             system("cls");
             Screen(args);
        /*     cout << args[1] << endl;*/
+            cout << "\n\nReturning to main menu... \n\n";
         }
         else if (command == "scheduler-test") {
             SchedulerTest();
@@ -100,9 +139,11 @@ int main() {
             Clear();
         }
         else {
+            system("cls");
             cout << command << " is not a recognized command. Please try again.\n";
         }
 
+        command = ""; // reset command variable
     }
 
     return 0;

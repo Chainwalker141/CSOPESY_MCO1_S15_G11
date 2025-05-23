@@ -1,4 +1,5 @@
 #include "ConsoleManager.h"
+#include <iostream>
 
 using namespace std;
 
@@ -21,5 +22,12 @@ void ConsoleManager::registerConsole(shared_ptr<Console> screenRef) {
 }
 
 void ConsoleManager::drawConsole(string processName) {
-    this->screenMap[processName]->printContents();
+    auto screen = screenMap.find(processName);
+    if (screen != screenMap.end()) {
+        this->screenMap[processName]->printContents();
+    }
+    else {
+        cout << "screen not found\n";
+    }
+    
 }
