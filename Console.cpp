@@ -3,12 +3,19 @@
 
 using namespace std;
 
-Console::Console(string processName, int currentLine, int totalLine, string timestamp)
+Console::Console(string processName, int currentLine, int totalLine)
 {
 	this->processName = processName;
 	this->currentLine = currentLine;
 	this->totalLine = totalLine;
-	this->timestamp = timestamp;
+	
+	std::time_t now = std::time(nullptr);
+	std::tm localTime;
+	localtime_s(&localTime, &now);
+
+	std::stringstream ss;
+	ss << std::put_time(&localTime, "%m/%d/%Y, %I:%M:%S %p");
+	this->timestamp = ss.str();
 }
 
 void Console::setProcessName(string processName)

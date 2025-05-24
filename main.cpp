@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 bool running = true;
-
+bool initialized = false; 
 
 void Exit() {
 	cout << "Exiting MOOD CLI...\n";
@@ -33,7 +33,7 @@ void Screen(std::vector<std::string> args) {
 
             string screenCommand = args[0]; // determines if -s or -r
             string processName = args[1];
-            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
+            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250);
 
             if (screenCommand == "-s") { // create a screen
                 if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
