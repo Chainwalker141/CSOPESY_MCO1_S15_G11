@@ -12,6 +12,7 @@ public:
 	static ConsoleManager* getInstance();
 	void registerConsole(std::shared_ptr<Console> screenRef);
 	void drawConsole(string processName);
+	bool screenExists(string processName);
 
 private:
 	static ConsoleManager* consoleManager;

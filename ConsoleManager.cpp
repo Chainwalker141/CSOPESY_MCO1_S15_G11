@@ -29,5 +29,8 @@ void ConsoleManager::drawConsole(string processName) {
     else {
         cout << "screen not found\n";
     }
-    
+}
+
+bool ConsoleManager::screenExists(string processName) {
+    return screenMap.find(processName) != screenMap.end();
 }

@@ -36,17 +36,23 @@ void Screen(std::vector<std::string> args) {
             shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
 
             if (screenCommand == "-s") { // create a screen
-                cout << "screen created\n";
-                ConsoleManager::getInstance()->registerConsole(consoleScreen);
-                ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+                if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
+                    cout << "screen already exists\n";
+                }
+                else {
+                    ConsoleManager::getInstance()->registerConsole(consoleScreen);
+                    cout << "screen created\n";
+                    ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+                }
             }
             else if (screenCommand == "-r") { // resume an existing screen
-                cout << "screen resumed\n";
-
-                // logic to check if screen exists would be better if here tho idk how to implement
-                // current checker is in drawConsole()
-
-                ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+                if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
+                    cout << "screen resumed\n";
+                    ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
+                }
+                else {
+                    cout << "screen not found\n";
+                }
             }
             else { // invalid command inputs
                 throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
