@@ -17,8 +17,7 @@ void Exit() {
 
 
 void Initialize() {
-	cout << "initialize command recognized. Doing something...\n";
-	// Add initialization code here
+    ConsoleManager::getInstance()->setInitialize(true); // initialize OS
 }
 
 void Screen(std::vector<std::string> args) {
@@ -103,8 +102,9 @@ int main() {
     // Display start interface
     
     string input, command; 
+    bool isCommand = false;
 
-    ConsoleManager::initialize();
+    ConsoleManager::initialize(); // initializing console manager instance
 
     while (running) {
         display_ASCII();
@@ -126,27 +126,30 @@ int main() {
         else if (command == "initialize") {
             Initialize();
         }
-        else if (command == "screen") {
+        else if (command == "screen" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
             Screen(args);
        /*     cout << args[1] << endl;*/
             cout << "\n\nReturning to main menu... \n\n";
         }
-        else if (command == "scheduler-test") {
+        else if (command == "scheduler-test" && ConsoleManager::getInstance()->getInitialize()) {
             SchedulerTest();
         }
-        else if (command == "scheduler-stop") { 
+        else if (command == "scheduler-stop" && ConsoleManager::getInstance()->getInitialize()) {
             SchedulerStop();
         }
-        else if (command == "report-util") {
+        else if (command == "report-util" && ConsoleManager::getInstance()->getInitialize()) {
             ReportUtil();
         }
-        else if (command == "clear") {
+        else if (command == "clear" && ConsoleManager::getInstance()->getInitialize()) {
             Clear();
         }
         else {
             system("cls");
-            cout << command << " is not a recognized command. Please try again.\n";
+            if (!ConsoleManager::getInstance()->getInitialize())
+                cout << "Please initialized the console." << endl;
+            else
+                cout << command << " is not a recognized command. Please try again.\n";
         }
 
         command = ""; // reset command variable

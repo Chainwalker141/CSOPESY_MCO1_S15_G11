@@ -34,3 +34,12 @@ void ConsoleManager::drawConsole(string processName) {
 bool ConsoleManager::screenExists(string processName) {
     return screenMap.find(processName) != screenMap.end();
 }
+
+void ConsoleManager::setInitialize(bool isInit)
+{
+    this->isInit = isInit;
+}
+
+bool ConsoleManager::getInitialize() {
+    return this->isInit;
+}
