@@ -15,6 +15,14 @@ public:
 	bool screenExists(string processName);
 	void setInitialize(bool isInit);
 	bool getInitialize();
+	void displayProcessSmi();
+
+	std::string getCurrentTimeStamp();
+
+	// This is for generating dummy processes
+	void schedulerTest();
+
+	unordered_map<string, shared_ptr<Console>> getScreenMap();
 
 private:
 	static ConsoleManager* consoleManager;

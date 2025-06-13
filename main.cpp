@@ -6,8 +6,11 @@
 #include "Console.h"
 #include "ConsoleManager.h"
 #include <cstdlib>
+#include "Scheduler.h"
 
+// Set global variables
 bool running = true;
+int NUM_CORES = 4;
 
 
 void Exit() {
@@ -22,19 +25,45 @@ void Initialize() {
 
 void Screen(std::vector<std::string> args) {
     try {
-
         bool screenRunning = true;
 
         while (screenRunning) {
-            if (args.size() < 2 || args.size() > 2) { // incorrect arguments checker
+            if (args.empty()) {
+                throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName> OR screen -ls");
+            }
+
+            string screenCommand = args[0];
+
+            if (screenCommand == "-ls") {
+                ConsoleManager::getInstance()->displayProcessSmi();
+
+                string input, command;
+                cout << "Enter command: ";
+                getline(cin, input);
+                istringstream iss(input);
+                iss >> command;
+
+                if (command == "exit") {
+                    system("cls");
+                    screenRunning = false;
+                }
+                else {
+                    system("cls");
+                    cout << "Command unrecognized\n\n";
+                }
+
+                return; // Exit function after -ls
+            }
+
+            // From here on: only for -s or -r with <ProcessName>
+            if (args.size() != 2) {
                 throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
             }
 
-            string screenCommand = args[0]; // determines if -s or -r
             string processName = args[1];
             shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
 
-            if (screenCommand == "-s") { // create a screen
+            if (screenCommand == "-s") {
                 if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
                     cout << "screen already exists\n";
                 }
@@ -44,7 +73,7 @@ void Screen(std::vector<std::string> args) {
                     ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
                 }
             }
-            else if (screenCommand == "-r") { // resume an existing screen
+            else if (screenCommand == "-r") {
                 if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
                     cout << "screen resumed\n";
                     ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
@@ -53,17 +82,17 @@ void Screen(std::vector<std::string> args) {
                     cout << "screen not found\n";
                 }
             }
-            else { // invalid command inputs
+            else {
                 throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
             }
 
             string input, command;
             cout << "Enter command: ";
-            getline(cin, input); // Gets entire line
-            istringstream iss(input); // Parses each string token 
+            getline(cin, input);
+            istringstream iss(input);
             iss >> command;
 
-            if (command == "exit") { // to exit screen display
+            if (command == "exit") {
                 system("cls");
                 screenRunning = false;
             }
@@ -74,14 +103,18 @@ void Screen(std::vector<std::string> args) {
         }
     }
     catch (exception& e) {
-        cout << "An error occurred: " << e.what();
+        cout << "An error occurred: " << e.what() << endl;
     }
-    
 }
 
-void SchedulerTest() {
+
+void SchedulerTest(int numCore) {
 	cout << "scheduler-test command recognized. Doing something...\n";
 	// Add scheduler test code here
+    Scheduler::initialize(numCore);
+    ConsoleManager::getInstance()->schedulerTest();
+    Scheduler::getInstance()->start();
+    system("cls");
 }
 
 void SchedulerStop() {
@@ -98,10 +131,12 @@ void Clear() {
     system("CLS");
 }
 
+
+
 int main() {
     // Display start interface
     
-    string input, command; 
+    string input, command;
     bool isCommand = false;
 
     ConsoleManager::initialize(); // initializing console manager instance
@@ -124,6 +159,7 @@ int main() {
             Exit();
         }
         else if (command == "initialize") {
+            system("cls");
             Initialize();
         }
         else if (command == "screen" && ConsoleManager::getInstance()->getInitialize()) {
@@ -133,7 +169,8 @@ int main() {
             cout << "\n\nReturning to main menu... \n\n";
         }
         else if (command == "scheduler-test" && ConsoleManager::getInstance()->getInitialize()) {
-            SchedulerTest();
+            system("cls");
+            SchedulerTest(NUM_CORES);
         }
         else if (command == "scheduler-stop" && ConsoleManager::getInstance()->getInitialize()) {
             SchedulerStop();
