@@ -19,6 +19,10 @@ public:
 
 	void printContents();
 
+	// TEMP FUNCTIONS FOR ACTIVITY
+	string getContents();
+	void printFile(int coreID);
+
 private:
 	string processName;
 	int currentLine;

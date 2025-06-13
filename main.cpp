@@ -20,6 +20,7 @@ void Exit() {
 
 
 void Initialize() {
+    cout << "\n\nMOOD OS Initialized... \n\n";
     ConsoleManager::getInstance()->setInitialize(true); // initialize OS
 }
 
@@ -61,11 +62,11 @@ void Screen(std::vector<std::string> args) {
             }
 
             string processName = args[1];
-            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM");
+            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM"); // TODO: ADD ACTUAL DATE & TIME
 
             if (screenCommand == "-s") {
                 if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
-                    cout << "screen already exists\n";
+                    cout << "Process " << processName << " already exists!\n";
                 }
                 else {
                     ConsoleManager::getInstance()->registerConsole(consoleScreen);
@@ -79,7 +80,7 @@ void Screen(std::vector<std::string> args) {
                     ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
                 }
                 else {
-                    cout << "screen not found\n";
+                    cout << "Process " << processName << " not found\n";
                 }
             }
             else {
@@ -109,7 +110,7 @@ void Screen(std::vector<std::string> args) {
 
 
 void SchedulerTest(int numCore) {
-	cout << "scheduler-test command recognized. Doing something...\n";
+	cout << "Creating dummy processes. Please wait...\n";
 	// Add scheduler test code here
     Scheduler::initialize(numCore);
     ConsoleManager::getInstance()->schedulerTest();
@@ -138,6 +139,9 @@ int main() {
     
     string input, command;
     bool isCommand = false;
+    cout << "=======================================================\n" << endl;
+    cout << "   Please initialize the console using \"initialize\"" << endl;
+    cout << "\n=======================================================" << endl;
 
     ConsoleManager::initialize(); // initializing console manager instance
 
@@ -171,6 +175,7 @@ int main() {
         else if (command == "scheduler-test" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
             SchedulerTest(NUM_CORES);
+            cout << "\n\nTest Processes created, please type \"screen -ls\" to view... \n\n";
         }
         else if (command == "scheduler-stop" && ConsoleManager::getInstance()->getInitialize()) {
             SchedulerStop();
@@ -183,8 +188,11 @@ int main() {
         }
         else {
             system("cls");
-            if (!ConsoleManager::getInstance()->getInitialize())
-                cout << "Please initialized the console." << endl;
+            if (!ConsoleManager::getInstance()->getInitialize()) {
+                cout << "=======================================================\n" << endl;
+                cout << "   Please initialize the console using \"initialize\"" << endl;
+                cout << "\n=======================================================" << endl;
+            }
             else
                 cout << command << " is not a recognized command. Please try again.\n";
         }

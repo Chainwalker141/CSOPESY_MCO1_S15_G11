@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Console.h"
+#include <fstream> // for file reading and writing TODO: DELETE AFTER ACTIVITY
 
 using namespace std;
 
@@ -55,4 +56,20 @@ void Console::printContents() {
 	cout << "Process Name: " << this->processName << endl;
 	cout << this->currentLine << " / " << this->totalLine << endl;
 	cout << this->timestamp << endl;
+}
+
+// TEMP FUNCTIONS FOR ACTIVITY
+string Console::getContents() {
+	string contents = "Process Name: " + this->processName + "\n" + 
+						to_string(this->currentLine) + " / " + to_string(this->totalLine) + "\n" +
+						this->timestamp + "\n";
+	return contents;
+}
+
+void Console::printFile(int coreID) {
+	ofstream file(this->getProcessName()+".txt");
+
+	file << "[Core " << coreID << "]";
+	file << this->getContents();
+	file.close();
 }

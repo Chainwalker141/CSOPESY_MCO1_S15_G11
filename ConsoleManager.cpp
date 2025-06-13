@@ -79,15 +79,16 @@ void ConsoleManager::schedulerTest() {
     static int process_counter = 0;
 
     for (int i = 0; i < NUM_PROCESSES; i++) {
+        cout << "Creating Process " << process_counter << endl;
         process_counter++;
         string processName = "P" + std::to_string(process_counter);
         shared_ptr<Console> processConsole = make_shared<Console>(
-            processName, 0, 10, ConsoleManager::getInstance()->getCurrentTimeStamp());
+            processName, 0, 10, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
 
         ConsoleManager::getInstance()->registerConsole(processConsole);
         Scheduler::getInstance()->assignProcess(processConsole);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay in process creation
     }
 }
 
@@ -98,7 +99,7 @@ unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {
 void ConsoleManager::displayProcessSmi() {
     unordered_map<string, shared_ptr<Console>> screenMap = ConsoleManager::getInstance()->getScreenMap();
     Scheduler* scheduler = Scheduler::getInstance();
-    int coresUsed = 0; // change (hardcoded)
+    int coresUsed = 0; // TODO: change (hardcoded)
     int coresAvailable = 4;
     float cpuUtilization = (float)coresUsed / (coresUsed + coresAvailable) * 100;
 
@@ -129,3 +130,4 @@ void ConsoleManager::displayProcessSmi() {
 
     }
 }
+

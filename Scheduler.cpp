@@ -3,6 +3,7 @@
 #include <iostream>
 #include <mutex>
 
+
 using namespace std;
 
 Scheduler* Scheduler::scheduler = nullptr;
@@ -75,9 +76,12 @@ void Scheduler::start() {
                         std::cout << std::endl;
                     }*/
 
+                    currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
+
                     currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
                 }
+                cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
             }
             });
     }
