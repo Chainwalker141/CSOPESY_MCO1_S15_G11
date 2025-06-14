@@ -29,5 +29,7 @@ public:
     void start();
     void assignProcess(std::shared_ptr<Console> console);
     bool getIsSchedulerTestRunning();
+    int getCoresUsed();
+    int getCoresAvailable();
     void setIsSchedulerTestRunning(bool isSchedulerTestRunning);
 };

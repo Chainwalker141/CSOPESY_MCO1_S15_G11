@@ -30,6 +30,14 @@ bool Scheduler::getIsSchedulerTestRunning()
 	return this->isSchedulerTestRunning;
 }
 
+int Scheduler::getCoresUsed() {
+    return this->coresUsed;
+}
+
+int Scheduler::getCoresAvailable() {
+    return this->coresAvailable;
+}
+
 void Scheduler::setIsSchedulerTestRunning(bool isSchedulerTestRunning)
 {
 	this->isSchedulerTestRunning = isSchedulerTestRunning;
@@ -53,6 +61,7 @@ void Scheduler::start() {
                 std::shared_ptr<Console> currentProcess = nullptr;
 
                 // Wait for process from shared queue
+                // READY QUEUE TOH
                 {
                     std::unique_lock<std::mutex> lock(queueMutex);
                     queueCV.wait(lock, [this]() {
@@ -64,6 +73,8 @@ void Scheduler::start() {
 
                     currentProcess = processQueue.front();
                     processQueue.pop();
+                    this->coresUsed++; // TODO: MAKE SETTER
+                    this->coresAvailable--;
                 }
 
                 // Process line-by-line
@@ -79,9 +90,12 @@ void Scheduler::start() {
                     currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
 
                     currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
+                    
                     std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
                 }
                 cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
+                this->coresUsed--; // TODO: MAKE SETTER
+                this->coresAvailable++;
             }
             });
     }

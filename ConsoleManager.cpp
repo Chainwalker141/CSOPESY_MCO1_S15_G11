@@ -99,8 +99,8 @@ unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {
 void ConsoleManager::displayProcessSmi() {
     unordered_map<string, shared_ptr<Console>> screenMap = ConsoleManager::getInstance()->getScreenMap();
     Scheduler* scheduler = Scheduler::getInstance();
-    int coresUsed = 0; // TODO: change (hardcoded)
-    int coresAvailable = 4;
+    int coresUsed = scheduler->getCoresUsed(); // TODO: change(hardcoded)
+    int coresAvailable = scheduler->getCoresAvailable();
     float cpuUtilization = (float)coresUsed / (coresUsed + coresAvailable) * 100;
 
     cout << "\nCPU Utilization: " << cpuUtilization << "%" << endl;
