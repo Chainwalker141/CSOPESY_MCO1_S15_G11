@@ -60,7 +60,7 @@ void Console::printContents() {
 
 // TEMP FUNCTIONS FOR ACTIVITY
 string Console::getContents() {
-	string contents = "Process Name: " + this->processName + "\n" + 
+	string contents = " Process Name: " + this->processName + "\n" + 
 						to_string(this->currentLine) + " / " + to_string(this->totalLine) + "\n" +
 						this->timestamp + "\n";
 	return contents;
@@ -71,5 +71,6 @@ void Console::printFile(int coreID) {
 
 	file << "[Core " << coreID << "]";
 	file << this->getContents();
+	file << "\n";
 	file.close();
 }
