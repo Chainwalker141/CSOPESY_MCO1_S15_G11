@@ -87,9 +87,9 @@ void Scheduler::start() {
                         std::cout << std::endl;
                     }*/
 
-                    currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
-
                     currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
+
+                    currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
                     
                     std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
                 }

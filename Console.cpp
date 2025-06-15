@@ -67,7 +67,7 @@ string Console::getContents() {
 }
 
 void Console::printFile(int coreID) {
-	ofstream file(this->getProcessName()+".txt");
+	ofstream file(this->getProcessName()+".txt", ios::app);
 
 	file << "[Core " << coreID << "]";
 	file << this->getContents();
