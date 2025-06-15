@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 # Outputs
 *.txt
+# EXCEPT config.txt
+!config.txt

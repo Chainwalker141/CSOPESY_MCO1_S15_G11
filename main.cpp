@@ -7,10 +7,17 @@
 #include "ConsoleManager.h"
 #include <cstdlib>
 #include "Scheduler.h"
+#include <fstream>
 
-// Set global variables
+// Set global variables and config
 bool running = true;
-int NUM_CORES = 4;
+int NUM_CPU;
+string SCHEDULER;
+int QUANTUM_CYCLES;
+int BATCH_PROCESS_FREQ;
+int MIN_INS;
+int MAX_INS;
+int DELAYS_PER_EXEC;
 
 
 void Exit() {
@@ -18,10 +25,61 @@ void Exit() {
 	running = false;
 }
 
+void readConfig() {
+    string filename = "config.txt";
+    ifstream inFile(filename);
+
+    if (inFile.fail()) {
+        cout << "Error opening config file" << endl;
+        return;
+    }
+
+    string key, value;
+    while (inFile >> key >> value) {
+        if (key == "num-cpu") {
+            NUM_CPU = stoi(value);
+        }
+        else if (key == "scheduler") {
+            SCHEDULER = value;
+        }
+        else if (key == "quantum-cycles") {
+            QUANTUM_CYCLES = stoi(value);
+        }
+        else if (key == "batch-process-freq") {
+            BATCH_PROCESS_FREQ = stoi(value);
+        }
+        else if (key == "min-ins") {
+            MIN_INS = stoi(value);
+        }
+        else if (key == "max-ins") {
+            MAX_INS = stoi(value);
+        }
+        else if (key == "delays-per-exec") {
+            DELAYS_PER_EXEC = stoi(value);
+        }
+        else {
+            cerr << "Unknown parameter: " << key << std::endl;
+        }
+    }
+}
+
+void printConfig() {
+    cout << "CONFIG SETTINGS: " << endl;
+    cout << "num_cpu: " << NUM_CPU << endl;
+    cout << "scheduler: " << SCHEDULER << endl;
+    cout << "quantum_cycles: " << QUANTUM_CYCLES << endl;
+    cout << "batch_process_freq: " << BATCH_PROCESS_FREQ << endl;
+    cout << "min_ins: " << MIN_INS << endl;
+    cout << "max_ins: " << MAX_INS << endl;
+    cout << "delays_per_exec: " << DELAYS_PER_EXEC << endl;
+}
 
 void Initialize() {
-    cout << "\n\nMOOD OS Initialized... \n\n";
+    
+    readConfig();
+    printConfig();
     ConsoleManager::getInstance()->setInitialize(true); // initialize OS
+    cout << "\n\nMOOD OS Initialized... \n\n";
 }
 
 void Screen(std::vector<std::string> args) {
@@ -163,8 +221,15 @@ int main() {
             Exit();
         }
         else if (command == "initialize") {
-            system("cls");
-            Initialize();
+            if (!ConsoleManager::getInstance()->getInitialize()) {
+                system("cls");
+                Initialize();
+            }
+            else {
+                system("cls");
+                cout << "Console is already initialized!\n";
+            }
+            
         }
         else if (command == "screen" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
@@ -174,7 +239,7 @@ int main() {
         }
         else if (command == "scheduler-test" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
-            SchedulerTest(NUM_CORES);
+            SchedulerTest(NUM_CPU);
             cout << "\n\nTest Processes created, please type \"screen -ls\" to view... \n\n";
         }
         else if (command == "scheduler-stop" && ConsoleManager::getInstance()->getInitialize()) {
