@@ -170,8 +170,8 @@ void Screen(std::vector<std::string> args) {
 void SchedulerTest(int numCore) {
 	cout << "Creating dummy processes. Please wait...\n";
 	// Add scheduler test code here
-    Scheduler::initialize(numCore);
-    ConsoleManager::getInstance()->schedulerTest();
+    Scheduler::initialize(numCore, QUANTUM_CYCLES, SCHEDULER);
+    ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ);
     Scheduler::getInstance()->start();
     system("cls");
 }
@@ -194,7 +194,7 @@ void Clear() {
 
 int main() {
     // Display start interface
-    
+    int cpuCycles = 0;
     string input, command;
     bool isCommand = false;
     cout << "=======================================================\n" << endl;
@@ -263,6 +263,7 @@ int main() {
         }
 
         command = ""; // reset command variable
+        cpuCycles++;
     }
 
     return 0;

@@ -9,7 +9,6 @@
 using namespace std;
 
 ConsoleManager* ConsoleManager::consoleManager = nullptr;
-int NUM_PROCESSES = 10;
 
 ConsoleManager::ConsoleManager() {
 };
@@ -75,7 +74,7 @@ std::string ConsoleManager::getCurrentTimeStamp() {
     return oss.str();
 }
 
-void ConsoleManager::schedulerTest() {
+void ConsoleManager::schedulerTest(int NUM_PROCESSES) {
     static int process_counter = 0;
 
     for (int i = 0; i < NUM_PROCESSES; i++) {

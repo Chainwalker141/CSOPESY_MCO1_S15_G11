@@ -20,7 +20,7 @@ public:
 	std::string getCurrentTimeStamp();
 
 	// This is for generating dummy processes
-	void schedulerTest();
+	void schedulerTest(int BATCH_PROCESS_FREQ);
 
 	unordered_map<string, shared_ptr<Console>> getScreenMap();
 
