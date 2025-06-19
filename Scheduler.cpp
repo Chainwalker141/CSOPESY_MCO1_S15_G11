@@ -80,7 +80,7 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId)
     this->coresAvailable++;
 
     if (processDoneFlag) {
-        cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
+        //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
     }
     else {
         assignProcess(currentProcess); // Put Process back to the queue. TODO: MAYBE USE A DIFFERENT FUNCTION ?
@@ -106,7 +106,7 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
     }
     // ENDOF FCFS
 
-    cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
+    //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
     this->coresUsed--; // TODO: MAKE SETTER
     this->coresAvailable++;
 }

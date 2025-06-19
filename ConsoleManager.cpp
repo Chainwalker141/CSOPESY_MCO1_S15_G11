@@ -76,19 +76,22 @@ std::string ConsoleManager::getCurrentTimeStamp() {
 
 void ConsoleManager::schedulerTest(int NUM_PROCESSES) {
     static int process_counter = 0;
+    while (Scheduler::getInstance()->getIsSchedulerTestRunning()) {
+        for (int i = 0; i < NUM_PROCESSES; i++) {
+            //cout << "Creating Process " << process_counter << endl;
+            process_counter++;
+            string processName = "P" + std::to_string(process_counter);
+            shared_ptr<Console> processConsole = make_shared<Console>(
+                processName, 0, 10, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
 
-    for (int i = 0; i < NUM_PROCESSES; i++) {
-        cout << "Creating Process " << process_counter << endl;
-        process_counter++;
-        string processName = "P" + std::to_string(process_counter);
-        shared_ptr<Console> processConsole = make_shared<Console>(
-            processName, 0, 10, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
+            ConsoleManager::getInstance()->registerConsole(processConsole);
+            Scheduler::getInstance()->assignProcess(processConsole);
 
-        ConsoleManager::getInstance()->registerConsole(processConsole);
-        Scheduler::getInstance()->assignProcess(processConsole);
+            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay in process creation
+        }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay in process creation
     }
+    
 }
 
 unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {

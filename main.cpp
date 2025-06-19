@@ -79,6 +79,8 @@ void Initialize() {
     readConfig();
     printConfig();
     ConsoleManager::getInstance()->setInitialize(true); // initialize OS
+    Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER); // initialize scheduler
+    Scheduler::getInstance()->start();
     cout << "\n\nMOOD OS Initialized... \n\n";
 }
 
@@ -168,17 +170,32 @@ void Screen(std::vector<std::string> args) {
 
 
 void SchedulerTest(int numCore) {
-	cout << "Creating dummy processes. Please wait...\n";
-	// Add scheduler test code here
-    Scheduler::initialize(numCore, QUANTUM_CYCLES, SCHEDULER);
-    ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ);
-    Scheduler::getInstance()->start();
+    if (Scheduler::getInstance()->getIsSchedulerTestRunning()) {
+        cout << "Scheduler test is already running.\n";
+		return;
+    }
+	cout << "Creating test processes...\n";
+    
+    Scheduler::getInstance()->setIsSchedulerTestRunning(true);
+
+	// Create a separate thread that continuously generates processes based on BATCH_PROCESS_FREQ
+    std::thread([]() {
+        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ);
+    }).detach();
+
     system("cls");
 }
 
 void SchedulerStop() {
-	cout << "scheduler-stop command recognized. Doing something...\n";
-	// Add scheduler stop code here
+    if (!Scheduler::getInstance()->getIsSchedulerTestRunning()) {
+        cout << "No scheduler test is currently running.\n";
+        return;
+    }
+    
+    cout << "Stopping scheduler test...\n";
+    Scheduler::getInstance()->setIsSchedulerTestRunning(false);
+	cout << "Scheduler test stopped.\n";
+    system("cls");
 }
 
 void ReportUtil() {
@@ -237,7 +254,7 @@ int main() {
        /*     cout << args[1] << endl;*/
             cout << "\n\nReturning to main menu... \n\n";
         }
-        else if (command == "scheduler-test" && ConsoleManager::getInstance()->getInitialize()) {
+        else if (command == "scheduler-start" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
             SchedulerTest(NUM_CPU);
             cout << "\n\nTest Processes created, please type \"screen -ls\" to view... \n\n";
