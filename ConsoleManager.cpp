@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <random>
 #include "DeclareCommand.h"
+#include "AddCommand.h"
 
 using namespace std;
 
@@ -128,7 +129,8 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process) {
     std::queue<std::shared_ptr<ICommand>> commandList;
     int totalIns = process->getTotalLine();
     for (int i = 0; i < totalIns; i++) {
-        commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "var", 430, process->getVarTable())); // TODO: Make random 
+        //commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "var", 430, process->getVarTable())); // TODO: Make random 
+        commandList.push(make_shared<AddCommand>(process->getProcessName(), "sum", 3, "val", process->getVarTable()));
     }
     process->setCommandList(commandList);
 }

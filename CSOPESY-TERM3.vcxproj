@@ -134,6 +134,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PrintCommand.cpp" />
     <ClCompile Include="Scheduler.cpp" />
+    <ClCompile Include="SubCommand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddCommand.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="PrintCommand.h" />
     <ClInclude Include="Scheduler.h" />
+    <ClInclude Include="SubCommand.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

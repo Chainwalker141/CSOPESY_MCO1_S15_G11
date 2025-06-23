@@ -24,5 +24,5 @@ void DeclareCommand::execute() {
 		varTable->insert({ varName, value }); // DNE: Add
 	}
 
-	cout << this->processName << " " << "declared " << varName << " = " << value << "\n";
+	cout << this->processName << " " << "declared " << varTable->find(varName)->first << " = " << varTable->find(varName)->second << "\n";
 }
