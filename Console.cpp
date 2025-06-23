@@ -10,6 +10,7 @@ Console::Console(string processName, int currentLine, int totalLine, string time
 	this->currentLine = currentLine;
 	this->totalLine = totalLine;
 	this->timestamp = timestamp;
+    this->varTable = make_shared<std::unordered_map<string, uint16_t>>();
 }
 
 void Console::setProcessName(string processName)
@@ -32,6 +33,10 @@ void Console::setTimestamp(string timestamp)
 	this->timestamp = timestamp;
 }
 
+void Console::setCommandList(std::queue<std::shared_ptr<ICommand>> commandList) {
+	this->commandList = std::move(commandList);
+}
+
 string Console::getProcessName()
 {
 	return this->processName;
@@ -50,6 +55,16 @@ int Console::getTotalLine()
 string Console::getTimestamp()
 {
 	return this->timestamp;
+}
+
+std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
+	return this->varTable;
+}
+
+void Console::runInstruction() {
+	this->commandList.front()->execute(); // Execute Current Line
+	commandList.pop(); // Pop out of list 
+	this->setCurrentLine(this->getCurrentLine() + 1); // Increment current instruction line
 }
 
 void Console::printContents() {

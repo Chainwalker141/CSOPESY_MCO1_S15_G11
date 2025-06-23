@@ -1,10 +1,11 @@
 #include "DeclareCommand.h"
+#include <iostream> // TESTING
 
 
 using namespace std;
 
-DeclareCommand::DeclareCommand(int pid, string varName, uint16_t value, std::shared_ptr<std::unordered_map < string, uint16_t>> varTable)
-	: ICommand(pid, ICommand::DECLARE) 
+DeclareCommand::DeclareCommand(string processName, string varName, uint16_t value, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
+	: ICommand(processName, ICommand::DECLARE) 
 {
 	this->varName = varName;
 	this->value = value;
@@ -22,4 +23,6 @@ void DeclareCommand::execute() {
 	else {
 		varTable->insert({ varName, value }); // DNE: Add
 	}
+
+	cout << this->processName << " " << "declared " << varName << " = " << value << "\n";
 }

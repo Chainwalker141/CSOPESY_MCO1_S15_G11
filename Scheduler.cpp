@@ -20,14 +20,12 @@ Scheduler::Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int c
 }
 
 void Scheduler::initialize(int numCores, int timeQuantum, string schedulingAlgorithm) {
-    Scheduler::schedulingAlgorithm algo;
     if (schedulingAlgorithm == "rr") {
-        algo = RR;
+        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, RR);
     }
     else if (schedulingAlgorithm == "fcfs") {
-        algo = FCFS;
+        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, FCFS);
     }
-	scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, algo);
 }
 
 Scheduler* Scheduler::getInstance() {
@@ -64,10 +62,10 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId)
     bool processDoneFlag = false;
     for (int i = 0; i < this->timeQuantum; i++) {
 
-        currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
+        //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
 
-        currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
-
+        //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
+        currentProcess->runInstruction();
         std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
 
         // Process is done but timeQuantum has not been finished
@@ -98,9 +96,9 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
             std::cout << std::endl;
         }*/
 
-        currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
-
-        currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
+        //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
+        currentProcess->runInstruction();
+        //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
 
         std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
     }

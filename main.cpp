@@ -79,6 +79,8 @@ void Initialize() {
     readConfig();
     printConfig();
     ConsoleManager::getInstance()->setInitialize(true); // initialize OS
+    ConsoleManager::getInstance()->setMaxIns(MAX_INS);
+    ConsoleManager::getInstance()->setMinIns(MIN_INS);
     Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER); // initialize scheduler
     Scheduler::getInstance()->start();
     cout << "\n\nMOOD OS Initialized... \n\n";
@@ -122,7 +124,7 @@ void Screen(std::vector<std::string> args) {
             }
 
             string processName = args[1];
-            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 12, 1250, "MM/DD/YYYY, HH:MM:SS AM/PM"); // TODO: ADD ACTUAL DATE & TIME
+            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 0, MAX_INS, "MM/DD/YYYY, HH:MM:SS AM/PM"); // TODO: ADD ACTUAL DATE & TIME
 
             if (screenCommand == "-s") {
                 if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {

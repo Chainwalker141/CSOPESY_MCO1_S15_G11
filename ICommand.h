@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 
 using namespace std;
 
@@ -17,11 +17,11 @@ public:
 		FOR,
 	};
 		
-	ICommand(int pid, ICommand::CommandType commandType);
+	ICommand(string processName, ICommand::CommandType commandType);
 	CommandType getCommandType();
 	virtual void execute() = 0;
 protected: 
-	int pid;
+	string processName;
 	CommandType commandType;
 };
 
@@ -29,7 +29,7 @@ inline ICommand::CommandType ICommand::getCommandType() {
 	return this->commandType;
 }
 
-inline ICommand::ICommand(int pid, ICommand::CommandType commandType) {
-	this->pid = pid;
+inline ICommand::ICommand(string processName, ICommand::CommandType commandType) {
+	this->processName = processName;
 	this->commandType = commandType;
 }

@@ -5,6 +5,8 @@
 #include <ctime>
 #include <sstream>
 #include <iomanip>
+#include <random>
+#include "DeclareCommand.h"
 
 using namespace std;
 
@@ -49,6 +51,22 @@ bool ConsoleManager::getInitialize() {
     return this->isInit;
 }
 
+int ConsoleManager::getMaxIns() {
+    return this->maxIns;
+}
+
+void ConsoleManager::setMaxIns(int maxIns) {
+    this->maxIns = maxIns;
+}
+
+int ConsoleManager::getMinIns() {
+    return this->minIns;
+}
+
+void ConsoleManager::setMinIns(int minIns) {
+    this->minIns = minIns;
+}
+
 std::string ConsoleManager::getCurrentTimeStamp() {
     std::time_t now = std::time(nullptr);
     std::tm localTime;
@@ -81,9 +99,14 @@ void ConsoleManager::schedulerTest(int NUM_PROCESSES) {
             //cout << "Creating Process " << process_counter << endl;
             process_counter++;
             string processName = "P" + std::to_string(process_counter);
-            shared_ptr<Console> processConsole = make_shared<Console>(
-                processName, 0, 10, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
 
+            //int totalIns = 100;
+            int totalIns = generateRandInt(minIns, maxIns); // Generate random instruction total
+            
+            shared_ptr<Console> processConsole = make_shared<Console>(
+                processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
+
+            ConsoleManager::getInstance()->generateCommands(processConsole);
             ConsoleManager::getInstance()->registerConsole(processConsole);
             Scheduler::getInstance()->assignProcess(processConsole);
 
@@ -92,6 +115,22 @@ void ConsoleManager::schedulerTest(int NUM_PROCESSES) {
 
     }
     
+}
+
+int ConsoleManager::generateRandInt(int minIns, int maxIns) {
+    static std::random_device rd;   
+    static std::mt19937 gen(rd());    
+    std::uniform_int_distribution<> distrib(minIns, maxIns);
+    return distrib(gen);
+}
+
+void ConsoleManager::generateCommands(std::shared_ptr<Console> process) {
+    std::queue<std::shared_ptr<ICommand>> commandList;
+    int totalIns = process->getTotalLine();
+    for (int i = 0; i < totalIns; i++) {
+        commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "var", 430, process->getVarTable())); // TODO: Make random 
+    }
+    process->setCommandList(commandList);
 }
 
 unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {
