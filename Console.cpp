@@ -80,10 +80,12 @@ void Console::printContents() {
 	cout << this->currentLine << " / " << this->totalLine << endl;
 	cout << this->timestamp << endl;
 
+	/*
 	cout << "\n--- Output ---" << endl;
 	for (const string& line : printOutputs) {
 		cout << line << endl;
 	}
+	*/
 }
 
 // TEMP FUNCTIONS FOR ACTIVITY

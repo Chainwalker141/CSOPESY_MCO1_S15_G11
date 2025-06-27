@@ -88,67 +88,71 @@ void Initialize() {
 
 void Screen(std::vector<std::string> args) {
     try {
-        bool screenRunning = true;
+        if (args.empty()) {
+            throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName> OR screen -ls");
+        }
 
-        while (screenRunning) {
-            if (args.empty()) {
-                throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName> OR screen -ls");
-            }
+        string screenCommand = args[0];
 
-            string screenCommand = args[0];
+        // screen -ls
+        if (screenCommand == "-ls") {
+            ConsoleManager::getInstance()->displayProcessSmi();
+            string input, command;
+            cout << "Enter command: ";
+            getline(cin, input);
+            istringstream iss(input);
+            iss >> command;
 
-            if (screenCommand == "-ls") {
-                ConsoleManager::getInstance()->displayProcessSmi();
-
-                string input, command;
-                cout << "Enter command: ";
-                getline(cin, input);
-                istringstream iss(input);
-                iss >> command;
-
-                if (command == "exit") {
-                    system("cls");
-                    screenRunning = false;
-                }
-                else {
-                    system("cls");
-                    cout << "Command unrecognized\n\n";
-                }
-
-                return; // Exit function after -ls
-            }
-
-            // From here on: only for -s or -r with <ProcessName>
-            if (args.size() != 2) {
-                throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
-            }
-
-            string processName = args[1];
-            shared_ptr<Console> consoleScreen = make_shared<Console>(processName, 0, MAX_INS, "MM/DD/YYYY, HH:MM:SS AM/PM"); // TODO: ADD ACTUAL DATE & TIME
-
-            if (screenCommand == "-s") {
-                if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
-                    cout << "Process " << processName << " already exists!\n";
-                }
-                else {
-                    ConsoleManager::getInstance()->registerConsole(consoleScreen);
-                    cout << "screen created\n";
-                    ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
-                }
-            }
-            else if (screenCommand == "-r") {
-                if (ConsoleManager::getInstance()->screenExists(consoleScreen->getProcessName())) {
-                    cout << "screen resumed\n";
-                    ConsoleManager::getInstance()->drawConsole(consoleScreen->getProcessName());
-                }
-                else {
-                    cout << "Process " << processName << " not found\n";
-                }
+            if (command == "exit") {
+                system("cls");
+                return;
             }
             else {
-                throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
+                system("cls");
+                cout << "Command unrecognized\n\n";
+                return;
             }
+        }
 
+
+        // From here on: only for -s or -r with <ProcessName>
+        if (args.size() != 2) {
+            throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
+        }
+
+        string processName = args[1];
+        shared_ptr<Console> consoleScreen;
+
+        if (screenCommand == "-s") {
+            if (ConsoleManager::getInstance()->screenExists(processName)) {
+                cout << "Process " << processName << " already exists!\n";
+            }
+            else {
+                consoleScreen = make_shared<Console>(processName, 0, MAX_INS, ConsoleManager::getInstance()->getCurrentTimeStamp());
+                ConsoleManager::getInstance()->registerConsole(consoleScreen);
+                cout << "screen created\n";
+            }
+        }
+        else if (screenCommand == "-r") {
+            if (ConsoleManager::getInstance()->screenExists(processName)) {
+                consoleScreen = ConsoleManager::getInstance()->getScreenMap()[processName];
+                cout << "screen resumed\n";
+            }
+            else {
+                cout << "Process " << processName << " not found\n";
+                return;
+            }
+        }
+        else {
+            throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
+        }
+
+        // draw console once
+        ConsoleManager::getInstance()->drawConsole(processName);
+
+        // command loop within screen
+        bool screenRunning = true;
+        while (screenRunning) {
             string input, command;
             cout << "Enter command: ";
             getline(cin, input);
@@ -159,11 +163,18 @@ void Screen(std::vector<std::string> args) {
                 system("cls");
                 screenRunning = false;
             }
+            else if (command == "process-smi") {
+                system("cls");
+                ConsoleManager::getInstance()->displayProcessSmi(processName);
+                continue;
+            }
             else {
                 system("cls");
                 cout << "Command unrecognized\n\n";
+                ConsoleManager::getInstance()->drawConsole(processName);
             }
         }
+
     }
     catch (exception& e) {
         cout << "An error occurred: " << e.what() << endl;

@@ -18,8 +18,9 @@ public:
 	void setInitialize(bool isInit);
 	bool getInitialize();
 	void displayProcessSmi();
+	void displayProcessSmi(const std::string& processName);
 
-	std::string getCurrentTimeStamp();
+	static std::string getCurrentTimeStamp();
 	unordered_map<string, shared_ptr<Console>> getScreenMap();
 
 	int getMaxIns();

@@ -203,6 +203,7 @@ unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {
     return this->screenMap;
 }
 
+// screen -ls
 void ConsoleManager::displayProcessSmi() {
     unordered_map<string, shared_ptr<Console>> screenMap = ConsoleManager::getInstance()->getScreenMap();
     Scheduler* scheduler = Scheduler::getInstance();
@@ -217,8 +218,6 @@ void ConsoleManager::displayProcessSmi() {
     cout << "Running processes:" << endl;
     for (const auto& pair : screenMap) {
         shared_ptr<Console> screenPtr = pair.second;
-
-
 
         auto coreID = screenPtr->getProcessName();
         string coreIDstr;
@@ -238,3 +237,26 @@ void ConsoleManager::displayProcessSmi() {
     }
 }
 
+//screen -r >> process-smi
+void ConsoleManager::displayProcessSmi(const std::string& processName) {
+    auto it = screenMap.find(processName);
+    if (it == screenMap.end()) {
+        std::cout << "Process " << processName << " not found." << std::endl;
+        return;
+    }
+
+    shared_ptr<Console> screenPtr = it->second;
+
+    std::cout << "Name: " << screenPtr->getProcessName() << std::endl;
+    std::cout << "Progress: " << screenPtr->getCurrentLine() << "/" << screenPtr->getTotalLine() << std::endl;
+    std::cout << "Timestamp: " << screenPtr->getTimestamp() << std::endl;
+
+    std::cout << "Logs:" << std::endl;
+    for (const auto& log : screenPtr->getOutputBuffer()) {
+        std::cout << "  " << log << std::endl;
+    }
+
+    if (screenPtr->getCurrentLine() >= screenPtr->getTotalLine()) {
+        std::cout << "Finished!" << std::endl;
+    }
+}

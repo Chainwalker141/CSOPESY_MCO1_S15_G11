@@ -29,8 +29,10 @@ void PrintCommand::execute() {
 			finalMsg = "Hello world from " + this->processName;
 		}
 
+		std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " + finalMsg;
+
 		// Append to console's output
-		console->appendOutput(finalMsg);
+		console->appendOutput(printLog);
 	}
 	busyWait(); // Simulate CPU cycle delay after execution
 }
