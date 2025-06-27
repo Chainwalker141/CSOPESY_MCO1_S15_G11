@@ -2,10 +2,11 @@
 #include "ConsoleManager.h"
 #include <iostream>
 
-PrintCommand::PrintCommand(string processName, string messageToPrint, int delay)
+PrintCommand::PrintCommand(string processName, string messageToPrint, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable,int delay)
 	: ICommand(processName, ICommand::PRINT, delay)
 {
 	this->messageToPrint = messageToPrint;
+	this->varTable = varTable;
 }
 
 void PrintCommand::execute() {
@@ -28,7 +29,7 @@ void PrintCommand::execute() {
 			finalMsg = "Hello world from " + this->processName;
 		}
 
-		// append to console's output
+		// Append to console's output
 		console->appendOutput(finalMsg);
 	}
 	busyWait(); // Simulate CPU cycle delay after execution

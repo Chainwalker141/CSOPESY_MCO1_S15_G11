@@ -134,14 +134,67 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
     std::queue<std::shared_ptr<ICommand>> commandList;
     int totalIns = process->getTotalLine();
 
-    string msg = "Hello world from " + process->getProcessName() + "!"; // msg to be printed
+    string processName = process->getProcessName();
+    string msg = "Hello world from " + processName + "!"; // msg to be printed DELETE SOON
+
+    auto varTable = process->getVarTable();
+
+    // RANDOM INSTRUCTIONS
+    default_random_engine generator(static_cast<unsigned>(time(nullptr)));
+    uniform_int_distribution<int> commandDist(0, 0); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
+    uniform_int_distribution<int> modeDist(0, 100); // for determining which mode of the instruction to use
+    uniform_int_distribution<int> valueDist(1, 500); // random values for Declare, Add, Sub
+    int generatedVars = 0;
 
     for (int i = 0; i < totalIns; i++) {
-        // TODO: MAKE RANDOM PER ITERATION 
-        //commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "val", 430, process->getVarTable(), DELAYS_PER_EXEC)); // DECLARE
-        //commandList.push(make_shared<AddCommand>(process->getProcessName(), "sum", 3, "val", process->getVarTable(), DELAYS_PER_EXEC)); // ADD
-        //commandList.push(make_shared<SubCommand>(process->getProcessName(), "diff", "val", 100, process->getVarTable(), DELAYS_PER_EXEC)); // SUBTRACT
-        commandList.push(make_shared<PrintCommand>(process->getProcessName(), "val", DELAYS_PER_EXEC));
+        int commandType = commandDist(generator);
+
+        switch (commandType) {
+        case 0: { // PRINT
+            int mode = modeDist(generator) % 2;
+            switch (mode) {
+            case 0: { // no var
+                commandList.push(std::make_shared<PrintCommand>(processName, "Hello World! (this wont actually print tho lol)", varTable, DELAYS_PER_EXEC));
+                break;
+            }
+            case 1: { // with var
+                int value = valueDist(generator);
+                string varName = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName, value, varTable, DELAYS_PER_EXEC));
+                commandList.push(std::make_shared<PrintCommand>(processName, varName, varTable, DELAYS_PER_EXEC));
+                break;
+            }
+            }
+            
+            break;
+        }
+        case 1: { // DECLARE
+            int value = valueDist(generator);
+            string varName = "var" + to_string(generatedVars++);
+            commandList.push(std::make_shared<DeclareCommand>(processName, varName, value, varTable, DELAYS_PER_EXEC));
+            break;
+        }
+        case 2: { // ADD
+            int value = valueDist(generator);
+            string varName = "var" + to_string(generatedVars++);
+            //commandList.push(std::make_shared<AddCommand>(processName, "sum", value, "val", varTable, DELAYS_PER_EXEC));
+            break;
+        }
+        case 3: { // SUBTRACT
+            int value = valueDist(generator);
+            string varName = "var" + to_string(generatedVars++);
+            //commandList.push(std::make_shared<SubCommand>(processName, "diff", "val", value, varTable, DELAYS_PER_EXEC));
+            break;
+        }
+        case 4: { // SLEEP
+            //commandList.push(std::make_shared<PrintCommand>(processName, "val", DELAYS_PER_EXEC));
+            break;
+        }
+        case 5: { // FOR
+            //commandList.push(std::make_shared<PrintCommand>(processName, "val", DELAYS_PER_EXEC));
+            break;
+        }
+        }
     }
     process->setCommandList(commandList);
 }

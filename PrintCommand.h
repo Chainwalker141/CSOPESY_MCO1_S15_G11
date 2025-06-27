@@ -1,14 +1,17 @@
 #pragma once
 #include "ICommand.h"
+#include <cstdint>
+#include <unordered_map>
 #include <string>
 
 using namespace std;
 
 class PrintCommand : public ICommand {
 public:
-	PrintCommand(string processName, string messageToPrint, int delay);
+	PrintCommand(string processName, string messageToPrint, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
 	void execute() override;
 
 private:
 	string messageToPrint;
+	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable;
 };
