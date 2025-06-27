@@ -11,13 +11,25 @@ PrintCommand::PrintCommand(string processName, string messageToPrint, int delay)
 void PrintCommand::execute() {
 	// Get the target console for this process
 	auto screenMap = ConsoleManager::getInstance()->getScreenMap();
-	auto it = screenMap.find(this->processName);
+	auto screen = screenMap.find(this->processName);
 
-	if (it != screenMap.end()) {
-		auto console = it->second;
+	if (screen != screenMap.end()) {
+		auto console = screen->second;
+		auto varTable = console->getVarTable();
+		string finalMsg;
 
-		// Append output to console's internal buffer
-		console->appendOutput(this->messageToPrint);
+		// find if it is a variable name
+		auto it = varTable->find(this->messageToPrint);
+		if (it != varTable->end()) {
+			finalMsg = "Value from " + it->first + ": " + std::to_string(it->second);
+		}
+		// otherwise default
+		else {
+			finalMsg = "Hello world from " + this->processName;
+		}
+
+		// append to console's output
+		console->appendOutput(finalMsg);
 	}
 	busyWait(); // Simulate CPU cycle delay after execution
 }

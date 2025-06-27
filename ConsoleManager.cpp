@@ -141,7 +141,7 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
         //commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "val", 430, process->getVarTable(), DELAYS_PER_EXEC)); // DECLARE
         //commandList.push(make_shared<AddCommand>(process->getProcessName(), "sum", 3, "val", process->getVarTable(), DELAYS_PER_EXEC)); // ADD
         //commandList.push(make_shared<SubCommand>(process->getProcessName(), "diff", "val", 100, process->getVarTable(), DELAYS_PER_EXEC)); // SUBTRACT
-        commandList.push(make_shared<PrintCommand>(process->getProcessName(), msg, DELAYS_PER_EXEC));
+        commandList.push(make_shared<PrintCommand>(process->getProcessName(), "val", DELAYS_PER_EXEC));
     }
     process->setCommandList(commandList);
 }

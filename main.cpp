@@ -263,6 +263,7 @@ int main() {
         }
         else if (command == "scheduler-stop" && ConsoleManager::getInstance()->getInitialize()) {
             SchedulerStop();
+            cout << "\n\nHalting dummy process creation... \n\n";
         }
         else if (command == "report-util" && ConsoleManager::getInstance()->getInitialize()) {
             ReportUtil();
