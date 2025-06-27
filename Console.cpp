@@ -61,6 +61,14 @@ std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
 	return this->varTable;
 }
 
+void Console::appendOutput(const std::string& msg) {
+	printOutputs.push_back(msg);
+}
+
+std::vector<std::string> Console::getOutputBuffer() const {
+	return printOutputs;
+}
+
 void Console::runInstruction() {
 	this->commandList.front()->execute(); // Execute Current Line
 	commandList.pop(); // Pop out of list 
@@ -71,6 +79,11 @@ void Console::printContents() {
 	cout << "Process Name: " << this->processName << endl;
 	cout << this->currentLine << " / " << this->totalLine << endl;
 	cout << this->timestamp << endl;
+
+	cout << "\n--- Output ---" << endl;
+	for (const string& line : printOutputs) {
+		cout << line << endl;
+	}
 }
 
 // TEMP FUNCTIONS FOR ACTIVITY

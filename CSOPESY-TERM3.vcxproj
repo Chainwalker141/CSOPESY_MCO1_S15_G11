@@ -134,6 +134,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PrintCommand.cpp" />
     <ClCompile Include="Scheduler.cpp" />
+    <ClCompile Include="SleepCommand.cpp" />
     <ClCompile Include="SubCommand.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -141,10 +142,12 @@
     <ClInclude Include="Console.h" />
     <ClInclude Include="ConsoleManager.h" />
     <ClInclude Include="DeclareCommand.h" />
+    <ClInclude Include="ForCommand.h" />
     <ClInclude Include="ICommand.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="PrintCommand.h" />
     <ClInclude Include="Scheduler.h" />
+    <ClInclude Include="SleepCommand.h" />
     <ClInclude Include="SubCommand.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

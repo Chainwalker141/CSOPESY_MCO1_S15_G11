@@ -28,10 +28,10 @@ public:
 	void setMinIns(int minIns);
 
 	// This is for generating dummy processes
-	void schedulerTest(int BATCH_PROCESS_FREQ);
+	void schedulerTest(int BATCH_PROCESS_FREQ, int DELAYS_PER_EXEC);
 
 	// CommandList Generation
-	void generateCommands(std::shared_ptr<Console>); 
+	void generateCommands(std::shared_ptr<Console>, int DELAYS_PER_EXEC);
 
 private:
 	static ConsoleManager* consoleManager;

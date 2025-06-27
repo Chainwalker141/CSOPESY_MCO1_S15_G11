@@ -182,7 +182,7 @@ void SchedulerTest(int numCore) {
 
 	// Create a separate thread that continuously generates processes based on BATCH_PROCESS_FREQ
     std::thread([]() {
-        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ);
+        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ, DELAYS_PER_EXEC);
     }).detach();
 
     system("cls");

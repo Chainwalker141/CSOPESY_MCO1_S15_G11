@@ -4,9 +4,9 @@
 
 using namespace std;
 
-class PrintCommand : public ICommand {
+class SleepCommand : public ICommand {
 public:
-	PrintCommand(string processName, string messageToPrint, int delay);
+	SleepCommand(string processName, string messageToPrint, int delay);
 	void execute() override;
 
 private:

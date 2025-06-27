@@ -4,8 +4,8 @@
 
 using namespace std;
 
-DeclareCommand::DeclareCommand(string processName, string varName, uint16_t value, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-	: ICommand(processName, ICommand::DECLARE) 
+DeclareCommand::DeclareCommand(string processName, string varName, uint16_t value, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+	: ICommand(processName, ICommand::DECLARE, delay) 
 {
 	this->varName = varName;
 	this->value = value;
@@ -25,4 +25,6 @@ void DeclareCommand::execute() {
 	}
 
 	//cout << this->processName << " " << "declared " << varTable->find(varName)->first << " = " << varTable->find(varName)->second << "\n"; // COMMENT OUT. FOR TESTING
+
+	busyWait(); // Simulate CPU cycle delay after execution
 }

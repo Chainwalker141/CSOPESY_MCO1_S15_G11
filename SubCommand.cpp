@@ -2,8 +2,8 @@
 #include <iostream> // REMOVE. ONLY FOR TESTING
 
 SubCommand::SubCommand(string processName, string diffVar, int val1, int val2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::SUBTRACT, delay)
 {
     this->diffVar = diffVar;
     this->val1 = val1;
@@ -14,42 +14,36 @@ SubCommand::SubCommand(string processName, string diffVar, int val1, int val2,
 }
 
 SubCommand::SubCommand(string processName, string diffVar, string var1, int val2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::SUBTRACT, delay)
 {
     this->diffVar = diffVar;
-
-    this->var1 = var1; //string
+    this->var1 = var1;
     this->val2 = val2;
-
     this->varTable = varTable;
     this->var1IsString = true;
     this->var2IsString = false;
 }
 
 SubCommand::SubCommand(string processName, string diffVar, int val1, string var2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::SUBTRACT, delay)
 {
     this->diffVar = diffVar;
-
     this->val1 = val1;
-    this->var2 = var2; //string
-
+    this->var2 = var2;
     this->varTable = varTable;
     this->var1IsString = false;
     this->var2IsString = true;
 }
 
 SubCommand::SubCommand(string processName, string diffVar, string var1, string var2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::SUBTRACT, delay)
 {
     this->diffVar = diffVar;
-
     this->var1 = var1;
-    this->var2 = var2; //string
-
+    this->var2 = var2;
     this->varTable = varTable;
     this->var1IsString = true;
     this->var2IsString = true;
@@ -96,4 +90,6 @@ void SubCommand::execute() {
 
     varTable->insert({ diffVar, diff });
     //cout << this->processName << " Diff: " << varTable->find(diffVar)->second; // COMMENT OUT. FOR TESTING
+
+    busyWait(); // Simulate CPU cycle delay after execution
 }

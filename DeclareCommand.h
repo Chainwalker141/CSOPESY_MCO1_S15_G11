@@ -8,7 +8,7 @@ using namespace std;
 
 class DeclareCommand : public ICommand {
 public:
-	DeclareCommand(string processName, string varName, uint16_t value, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
+	DeclareCommand(string processName, string varName, uint16_t value, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
 	void execute() override; 
 
 private:

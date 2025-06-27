@@ -7,10 +7,10 @@ using namespace std;
 
 class AddCommand : public ICommand {
 public:
-	AddCommand(string processName, string sumVar, int val1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
-	AddCommand(string processName, string sumVar, string var1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
-	AddCommand(string processName, string sumVar, int val1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
-	AddCommand(string processName, string sumVar, string var1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
+	AddCommand(string processName, string sumVar, int val1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
+	AddCommand(string processName, string sumVar, string var1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
+	AddCommand(string processName, string sumVar, int val1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
+	AddCommand(string processName, string sumVar, string var1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
 
 	void execute() override;
 

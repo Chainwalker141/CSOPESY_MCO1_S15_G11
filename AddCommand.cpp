@@ -2,8 +2,8 @@
 #include <iostream> // REMOVE. ONLY FOR TESTING
 
 AddCommand::AddCommand(string processName, string sumVar, int val1, int val2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::ADD, delay)
 {
     this->sumVar = sumVar;
     this->val1 = val1;
@@ -14,42 +14,36 @@ AddCommand::AddCommand(string processName, string sumVar, int val1, int val2,
 }
 
 AddCommand::AddCommand(string processName, string sumVar, string var1, int val2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::ADD, delay)
 {
     this->sumVar = sumVar;
-
-    this->var1 = var1; //string
+    this->var1 = var1;
     this->val2 = val2;
-
     this->varTable = varTable;
     this->var1IsString = true;
     this->var2IsString = false;
 }
 
 AddCommand::AddCommand(string processName, string sumVar, int val1, string var2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::ADD, delay)
 {
     this->sumVar = sumVar;
-
     this->val1 = val1;
-    this->var2 = var2; //string
-
+    this->var2 = var2;
     this->varTable = varTable;
     this->var1IsString = false;
     this->var2IsString = true;
 }
 
 AddCommand::AddCommand(string processName, string sumVar, string var1, string var2,
-    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable)
-    : ICommand(processName, ICommand::ADD)
+    std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay)
+    : ICommand(processName, ICommand::ADD, delay)
 {
     this->sumVar = sumVar;
-
     this->var1 = var1;
-    this->var2 = var2; //string
-
+    this->var2 = var2;
     this->varTable = varTable;
     this->var1IsString = true;
     this->var2IsString = true;
@@ -92,4 +86,6 @@ void AddCommand::execute() {
 
     varTable->insert({ sumVar, sum });
     //cout << this->processName << " Sum: " << varTable->find(sumVar)->second; // COMMENT OUT. sFOR TESTING
+
+    busyWait(); // Simulate CPU cycle delay after execution
 }

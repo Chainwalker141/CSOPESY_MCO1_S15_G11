@@ -35,6 +35,10 @@ public:
 	// COMMANDLIST IMPLEMENTATION
 	void runInstruction(); 
 
+	// FOR DISPLAYING PRINT OUTPUTS
+	void appendOutput(const std::string& msg);
+	vector<string> getOutputBuffer() const;
+
 private:
 	string processName;
 	int currentLine;
@@ -44,7 +48,5 @@ private:
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables
 	std::queue<std::shared_ptr<ICommand>> commandList;
-	
-	// 
-	
+	vector<string> printOutputs;
 };

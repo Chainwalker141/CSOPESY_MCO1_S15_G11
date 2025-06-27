@@ -6,9 +6,13 @@
 #include <sstream>
 #include <iomanip>
 #include <random>
+// types of commands
+#include "PrintCommand.h"
 #include "DeclareCommand.h"
 #include "AddCommand.h"
 #include "SubCommand.h"
+#include "SleepCommand.h"
+#include "ForCommand.h"
 
 using namespace std;
 
@@ -94,7 +98,7 @@ std::string ConsoleManager::getCurrentTimeStamp() {
     return oss.str();
 }
 
-void ConsoleManager::schedulerTest(int NUM_PROCESSES) {
+void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC) {
     static int process_counter = 0;
     while (Scheduler::getInstance()->getIsSchedulerTestRunning()) {
         for (int i = 0; i < NUM_PROCESSES; i++) {
@@ -108,11 +112,11 @@ void ConsoleManager::schedulerTest(int NUM_PROCESSES) {
             shared_ptr<Console> processConsole = make_shared<Console>(
                 processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
 
-            ConsoleManager::getInstance()->generateCommands(processConsole);
+            ConsoleManager::getInstance()->generateCommands(processConsole, DELAYS_PER_EXEC);
             ConsoleManager::getInstance()->registerConsole(processConsole);
             Scheduler::getInstance()->assignProcess(processConsole);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay in process creation
+            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // delay in process creation (ALSO IS CPU TICK IG??)
         }
 
     }
@@ -126,14 +130,18 @@ int ConsoleManager::generateRandInt(int minIns, int maxIns) {
     return distrib(gen);
 }
 
-void ConsoleManager::generateCommands(std::shared_ptr<Console> process) {
+void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELAYS_PER_EXEC) {
     std::queue<std::shared_ptr<ICommand>> commandList;
     int totalIns = process->getTotalLine();
+
+    string msg = "Hello world from " + process->getProcessName() + "!"; // msg to be printed
+
     for (int i = 0; i < totalIns; i++) {
         // TODO: MAKE RANDOM PER ITERATION 
-        //commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "val", 430, process->getVarTable())); // DECLARE
-        //commandList.push(make_shared<AddCommand>(process->getProcessName(), "sum", 3, "val", process->getVarTable())); // ADD
-        commandList.push(make_shared<SubCommand>(process->getProcessName(), "diff", "val", 100, process->getVarTable())); // SUBTRACT
+        //commandList.push(make_shared<DeclareCommand>(process->getProcessName(), "val", 430, process->getVarTable(), DELAYS_PER_EXEC)); // DECLARE
+        //commandList.push(make_shared<AddCommand>(process->getProcessName(), "sum", 3, "val", process->getVarTable(), DELAYS_PER_EXEC)); // ADD
+        //commandList.push(make_shared<SubCommand>(process->getProcessName(), "diff", "val", 100, process->getVarTable(), DELAYS_PER_EXEC)); // SUBTRACT
+        commandList.push(make_shared<PrintCommand>(process->getProcessName(), msg, DELAYS_PER_EXEC));
     }
     process->setCommandList(commandList);
 }

@@ -7,10 +7,10 @@ using namespace std;
 
 class SubCommand : public ICommand {
 public:
-	SubCommand(string processName, string diffVar, int val1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
-	SubCommand(string processName, string diffVar, string var1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
-	SubCommand(string processName, string diffVar, int val1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
-	SubCommand(string processName, string diffVar, string var1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable);
+	SubCommand(string processName, string diffVar, int val1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
+	SubCommand(string processName, string diffVar, string var1, int val2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
+	SubCommand(string processName, string diffVar, int val1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
+	SubCommand(string processName, string diffVar, string var1, string var2, std::shared_ptr<std::unordered_map<string, uint16_t>> varTable, int delay);
 
 	void execute() override;
 
