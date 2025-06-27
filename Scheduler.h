@@ -39,4 +39,6 @@ public:
     int getCoresUsed();
     int getCoresAvailable();
     void setIsSchedulerTestRunning(bool isSchedulerTestRunning);
+	void setCoresUsed(int coresUsed);
+    void setCoresAvailable(int coresAvailable);
 };

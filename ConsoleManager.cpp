@@ -220,7 +220,18 @@ void ConsoleManager::displayProcessSmi() {
         shared_ptr<Console> screenPtr = pair.second;
 
         auto coreID = screenPtr->getProcessName();
-        string coreIDstr;
+		
+        std::string coreIDstr;
+
+
+        int coreIDint = screenPtr->getCoreID();
+
+        if (screenPtr->getCoreID() != -1) {
+            coreIDstr = std::to_string(coreIDint);
+        }
+        else {
+            coreIDstr = "N/A";
+        }
         /*   if (coreID == -1) {
                coreIDstr = "N/A";
            }
