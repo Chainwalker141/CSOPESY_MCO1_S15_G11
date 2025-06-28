@@ -200,7 +200,7 @@ void SchedulerTest(int numCore) {
 
 void SchedulerStop() {
     if (!Scheduler::getInstance()->getIsSchedulerTestRunning()) {
-        cout << "No scheduler test is currently running.\n";
+        cout << "\n\nNo scheduler test is currently running.\n\n";
         return;
     }
     
@@ -257,7 +257,7 @@ void ReportUtil() {
                     << screenPtr->getTotalLine() << " | Finished!" << "\n";
             }
         }
-        std::cout << "Report written to csopesy-log.txt\n\n";
+        std::cout << "\n\nReport written to csopesy-log.txt\n\n";
     }
 }
 

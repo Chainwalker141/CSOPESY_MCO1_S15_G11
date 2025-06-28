@@ -135,13 +135,16 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
     int totalIns = process->getTotalLine();
 
     string processName = process->getProcessName();
-    string msg = "Hello world from " + processName + "!"; // msg to be printed DELETE SOON
+
+    // ok so, for each instruction it has to search for the screen again just so it can access it's output buffer function for logs
+    // its REALLY stupid and should be fixed when possible like send the function itself or smthing over here
+    // TODO: send output buffer through here as a parameter
 
     auto varTable = process->getVarTable();
 
     // RANDOM INSTRUCTIONS
     default_random_engine generator(static_cast<unsigned>(time(nullptr)));
-    uniform_int_distribution<int> commandDist(0, 0); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
+    uniform_int_distribution<int> commandDist(3, 3); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
     uniform_int_distribution<int> modeDist(0, 100); // for determining which mode of the instruction to use
     uniform_int_distribution<int> valueDist(1, 500); // random values for Declare, Add, Sub
     int generatedVars = 0;
@@ -154,6 +157,7 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
         switch (commandType) {
         case 0: { // PRINT
             int mode = modeDist(generator) % 2;
+            
             switch (mode) {
             case 0: { // no var
                 commandList.push(std::make_shared<PrintCommand>(processName, "Hello World! (this wont actually print tho lol)", varTable, DELAYS_PER_EXEC));
@@ -177,15 +181,73 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
             break;
         }
         case 2: { // ADD
-            int value = valueDist(generator);
-            string varName = "var" + to_string(generatedVars++);
+            int val1 = valueDist(generator); // val 1
+            int val2 = valueDist(generator); // val 2
+            int mode = modeDist(generator) % 4;
+            string sumVarName = "sum" + to_string(generatedVars++); // var to store number
+
+            switch (mode) {
+            case 0: { // both direct number
+                commandList.push(std::make_shared<AddCommand>(processName, sumVarName, val1, val2, varTable, DELAYS_PER_EXEC));
+                break;
+            }
+            case 1: { // var 1 and number
+                string varName1 = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName1, val1, varTable, DELAYS_PER_EXEC)); // declare a var first
+                commandList.push(std::make_shared<AddCommand>(processName, sumVarName, varName1, val2, varTable, DELAYS_PER_EXEC)); // add
+                break;
+            }
+            case 2: { // number and var 2
+                string varName2 = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName2, val2, varTable, DELAYS_PER_EXEC)); // declare a var first
+                commandList.push(std::make_shared<AddCommand>(processName, sumVarName, val1, varName2, varTable, DELAYS_PER_EXEC));// add
+                break;
+            }
+            case 3: { // var 1 and var 2
+                string varName1 = "var" + to_string(generatedVars++);
+                string varName2 = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName1, val1, varTable, DELAYS_PER_EXEC)); // declare var1
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName2, val2, varTable, DELAYS_PER_EXEC)); // declare var2
+                commandList.push(std::make_shared<AddCommand>(processName, sumVarName, varName1, varName2, varTable, DELAYS_PER_EXEC)); // add var1 and var2
+                break;
+            }
+            }
             //commandList.push(std::make_shared<AddCommand>(processName, "sum", value, "val", varTable, DELAYS_PER_EXEC));
             break;
         }
         case 3: { // SUBTRACT
-            int value = valueDist(generator);
-            string varName = "var" + to_string(generatedVars++);
-            //commandList.push(std::make_shared<SubCommand>(processName, "diff", "val", value, varTable, DELAYS_PER_EXEC));
+            int val1 = valueDist(generator); // val 1
+            int val2 = valueDist(generator); // val 2
+            int mode = modeDist(generator) % 4;
+            string diffVarName = "diff" + to_string(generatedVars++); // var to store number
+
+            switch (mode) {
+            case 0: { // both direct number
+                commandList.push(std::make_shared<SubCommand>(processName, diffVarName, val1, val2, varTable, DELAYS_PER_EXEC));
+                break;
+            }
+            case 1: { // var 1 and number
+                string varName1 = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName1, val1, varTable, DELAYS_PER_EXEC)); // declare a var first
+                commandList.push(std::make_shared<SubCommand>(processName, diffVarName, varName1, val2, varTable, DELAYS_PER_EXEC)); // sub
+                break;
+            }
+            case 2: { // number and var 2
+                string varName2 = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName2, val2, varTable, DELAYS_PER_EXEC)); // declare a var first
+                commandList.push(std::make_shared<SubCommand>(processName, diffVarName, val1, varName2, varTable, DELAYS_PER_EXEC));// sub
+                break;
+            }
+            case 3: { // var 1 and var 2
+                string varName1 = "var" + to_string(generatedVars++);
+                string varName2 = "var" + to_string(generatedVars++);
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName1, val1, varTable, DELAYS_PER_EXEC)); // declare var1
+                commandList.push(std::make_shared<DeclareCommand>(processName, varName2, val2, varTable, DELAYS_PER_EXEC)); // declare var2
+                commandList.push(std::make_shared<SubCommand>(processName, diffVarName, varName1, varName2, varTable, DELAYS_PER_EXEC)); // sub var1 and var2
+                break;
+            }
+            }
+            //commandList.push(std::make_shared<SubCommand>(processName, "sum", value, "val", varTable, DELAYS_PER_EXEC));
             break;
         }
         case 4: { // SLEEP
@@ -193,6 +255,7 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
             break;
         }
         case 5: { // FOR
+            std::queue<std::shared_ptr<ICommand>> forCommandsList;
             //commandList.push(std::make_shared<PrintCommand>(processName, "val", DELAYS_PER_EXEC));
             break;
         }

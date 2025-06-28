@@ -1,7 +1,12 @@
 num-cpu 3
 scheduler rr
+<<<<<<< Updated upstream
 quantum-cycles 5
 batch-process-freq 1
+=======
+quantum-cycles 20
+batch-process-freq 4
+>>>>>>> Stashed changes
 min-ins 1
 max-ins 10
 delays-per-exec 1
