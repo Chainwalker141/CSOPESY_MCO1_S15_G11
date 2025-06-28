@@ -26,6 +26,7 @@ public:
 	int getCoreID();
 
 	string getContents();
+	bool isProcessDone();
 
 	shared_ptr<std::unordered_map<string, uint16_t>> getVarTable(); 
 	void setCommandList(std::queue<shared_ptr<ICommand>>);

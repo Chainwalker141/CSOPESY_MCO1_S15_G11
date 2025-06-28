@@ -77,6 +77,10 @@ std::vector<std::string> Console::getOutputBuffer() const {
 	return printOutputs;
 }
 
+bool Console::isProcessDone(){
+	return this->currentLine >= this->totalLine;
+}
+
 void Console::runInstruction() {
 	this->commandList.front()->execute(); // Execute Current Line
 	commandList.pop(); // Pop out of list 
