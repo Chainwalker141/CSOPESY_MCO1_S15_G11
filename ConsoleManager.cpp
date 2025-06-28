@@ -234,6 +234,14 @@ void ConsoleManager::displayProcessSmi() {
         else {
             coreIDstr = "N/A";
         }
+
+        if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
+            cout << "Name: " << screenPtr->getProcessName() << " | "
+                << screenPtr->getTimestamp() << " | "
+                << "Core: " << coreIDstr << " | "
+                << screenPtr->getCurrentLine() << "/"
+                << screenPtr->getTotalLine() << " | " << endl;
+        }
         
     }
 
