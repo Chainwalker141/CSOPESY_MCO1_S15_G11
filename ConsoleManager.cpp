@@ -215,6 +215,8 @@ void ConsoleManager::displayProcessSmi() {
     cout << "Cores used: " << coresUsed << endl;
     cout << "Cores available: " << coresAvailable << endl;
     cout << "-----------------------------------" << endl;
+
+    // Running Processes
     cout << "Running processes:" << endl;
     for (const auto& pair : screenMap) {
         shared_ptr<Console> screenPtr = pair.second;
@@ -232,19 +234,20 @@ void ConsoleManager::displayProcessSmi() {
         else {
             coreIDstr = "N/A";
         }
-        /*   if (coreID == -1) {
-               coreIDstr = "N/A";
-           }
-           else {
-               coreIDstr = to_string(coreID);
-           }*/
+        
+    }
 
-        cout << "Name: " << screenPtr->getProcessName() << " | "
-            << screenPtr->getTimestamp() << " | "
-            << "Core: " << coreIDstr << " | "
-            << screenPtr->getCurrentLine() << "/"
-            << screenPtr->getTotalLine() << " | " << endl;
-
+    // Finished Processes
+    cout << "\nFinished Processes:" << endl;
+    for (const auto& pair : screenMap) {
+        auto screenPtr = pair.second;
+        if (screenPtr->getCurrentLine() >= screenPtr->getTotalLine()) {
+            cout << "Name: " << screenPtr->getProcessName() << " | "
+                << screenPtr->getTimestamp() << " | "
+                << "Finished | "
+                <<screenPtr->getCurrentLine() << "/"
+                << screenPtr->getTotalLine() << " | Finished!" << endl;
+        }
     }
 }
 

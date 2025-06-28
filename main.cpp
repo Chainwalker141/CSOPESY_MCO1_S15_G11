@@ -114,7 +114,6 @@ void Screen(std::vector<std::string> args) {
             }
         }
 
-
         // From here on: only for -s or -r with <ProcessName>
         if (args.size() != 2) {
             throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
@@ -212,8 +211,38 @@ void SchedulerStop() {
 }
 
 void ReportUtil() {
-	cout << "report-util command recognized. Doing something...\n";
-	// Add report utilization code here
+    std::ofstream reportFile("csopesy-log.txt");
+    if (!reportFile.is_open()) {
+        std::cout << "Failed to open report file.\n";
+    }
+    else {
+        auto screenMap = ConsoleManager::getInstance()->getScreenMap();
+        reportFile << "Running processes:\n";
+        for (const auto& pair : screenMap) {
+            std::shared_ptr<Console> screenPtr = pair.second;
+            string coreIDstr;
+            if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
+                reportFile << "Name: " << screenPtr->getProcessName() << " | "
+                    << screenPtr->getTimestamp() << " | "
+                    << "Core: " << coreIDstr << " | "
+                    << screenPtr->getCurrentLine() << "/"
+                    << screenPtr->getTotalLine() << " | " << "\n";
+            }
+        }
+
+        reportFile << "\nFinished processes:\n";
+        for (const auto& pair : screenMap) {
+            std::shared_ptr<Console> screenPtr = pair.second;
+            if (screenPtr->getCurrentLine() >= screenPtr->getTotalLine()) {
+                reportFile << "Name: " << screenPtr->getProcessName() << " | "
+                    << screenPtr->getTimestamp() << " | "
+                    << "Finished | "
+                    << screenPtr->getCurrentLine() << "/"
+                    << screenPtr->getTotalLine() << " | Finished!" << "\n";
+            }
+        }
+        std::cout << "Report written to csopesy-log.txt\n\n";
+    }
 }
 
 void Clear() {
@@ -277,6 +306,7 @@ int main() {
             cout << "\n\nHalting dummy process creation... \n\n";
         }
         else if (command == "report-util" && ConsoleManager::getInstance()->getInitialize()) {
+            system("cls");
             ReportUtil();
         }
         else if (command == "clear" && ConsoleManager::getInstance()->getInitialize()) {
