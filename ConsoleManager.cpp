@@ -149,6 +149,8 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
     for (int i = 0; i < totalIns; i++) {
         int commandType = commandDist(generator);
 
+        
+
         switch (commandType) {
         case 0: { // PRINT
             int mode = modeDist(generator) % 2;

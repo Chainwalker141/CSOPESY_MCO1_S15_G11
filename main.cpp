@@ -216,11 +216,27 @@ void ReportUtil() {
         std::cout << "Failed to open report file.\n";
     }
     else {
+		Scheduler* scheduler = Scheduler::getInstance();
         auto screenMap = ConsoleManager::getInstance()->getScreenMap();
+        int coresUsed = scheduler->getCoresUsed(); // TODO: change(hardcoded)
+        int coresAvailable = scheduler->getCoresAvailable();
+        float cpuUtilization = (float)coresUsed / (coresUsed + coresAvailable) * 100;
+		reportFile << "CPU Utilization: " << cpuUtilization << "%\n";
+		reportFile << "Cores Used: " << coresUsed << "\n";
+		reportFile << "Cores Available: " << coresAvailable << "\n";
         reportFile << "Running processes:\n";
         for (const auto& pair : screenMap) {
             std::shared_ptr<Console> screenPtr = pair.second;
-            string coreIDstr;
+            std::string coreIDstr;
+            int coreIDint = screenPtr->getCoreID();
+
+            if (screenPtr->getCoreID() != -1) {
+                coreIDstr = std::to_string(coreIDint);
+            }
+            else {
+                coreIDstr = "N/A";
+            }
+
             if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
                 reportFile << "Name: " << screenPtr->getProcessName() << " | "
                     << screenPtr->getTimestamp() << " | "
