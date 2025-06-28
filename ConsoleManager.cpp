@@ -144,7 +144,7 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
 
     // RANDOM INSTRUCTIONS
     default_random_engine generator(static_cast<unsigned>(time(nullptr)));
-    uniform_int_distribution<int> commandDist(0, 4); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
+    uniform_int_distribution<int> commandDist(5, 5); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
     uniform_int_distribution<int> modeDist(0, 100); // for determining which mode of the instruction to use
     uniform_int_distribution<int> valueDist(1, 500); // random values for Declare, Add, Sub
 	uniform_int_distribution<int> sleepDist(1, 5); // random sleep time for Sleep command
@@ -257,9 +257,16 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
 			commandList.push(std::make_shared<SleepCommand>(processName, "Sleeping for ", value, DELAYS_PER_EXEC));
             break;
         }
-        case 5: { // FOR
-            std::queue<std::shared_ptr<ICommand>> forCommandsList;
-            //commandList.push(std::make_shared<PrintCommand>(processName, "val", DELAYS_PER_EXEC));
+        case 5: { // 
+            int loopStart = 0; // e.g., 0-4
+            int loopEnd = 2; // e.g., 1-5 steps
+
+            auto forCmd = std::make_shared<ForCommand>(processName, loopStart, loopEnd, DELAYS_PER_EXEC);
+            forCmd->addCommand(std::make_shared<DeclareCommand>(processName, "var1", 2, varTable, DELAYS_PER_EXEC));
+            forCmd->addCommand(std::make_shared<DeclareCommand>(processName, "var2", 2, varTable, DELAYS_PER_EXEC));
+			forCmd->addCommand(std::make_shared<AddCommand>(processName, "var3", "var1", "var2", varTable, DELAYS_PER_EXEC));
+
+            commandList.push(forCmd);
             break;
         }
         }

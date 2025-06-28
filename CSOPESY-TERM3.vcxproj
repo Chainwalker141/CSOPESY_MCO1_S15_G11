@@ -132,6 +132,7 @@
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="ConsoleManager.cpp" />
     <ClCompile Include="DeclareCommand.cpp" />
+    <ClCompile Include="ForCommand.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PrintCommand.cpp" />
     <ClCompile Include="Scheduler.cpp" />
