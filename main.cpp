@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include "Scheduler.h"
 #include <fstream>
+#include <random>
 
 // Set global variables and config
 bool running = true;
@@ -127,8 +128,17 @@ void Screen(std::vector<std::string> args) {
                 cout << "Process " << processName << " already exists!\n";
             }
             else {
-                consoleScreen = make_shared<Console>(processName, 0, MAX_INS, ConsoleManager::getInstance()->getCurrentTimeStamp());
+                static std::random_device rd;
+                static std::mt19937 gen(rd());
+                std::uniform_int_distribution<> distrib(MIN_INS, MAX_INS);
+                int totalIns = distrib(gen);
+
+                consoleScreen = make_shared<Console>(
+                    processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
+
+                ConsoleManager::getInstance()->generateCommands(consoleScreen, DELAYS_PER_EXEC);
                 ConsoleManager::getInstance()->registerConsole(consoleScreen);
+                Scheduler::getInstance()->assignProcess(consoleScreen);
                 cout << "screen created\n";
             }
         }
