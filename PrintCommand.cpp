@@ -32,7 +32,7 @@ void PrintCommand::execute() {
 		std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " + finalMsg;
 
 		// Append to console's output
-		cout << "Printed at: " + console->getProcessName();
+		// cout << "Printed at: " + console->getProcessName(); // DEBUGGING
 		console->appendOutput(printLog);
 	}
 	busyWait(); // Simulate CPU cycle delay after execution

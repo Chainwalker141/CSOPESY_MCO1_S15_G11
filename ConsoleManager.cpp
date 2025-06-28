@@ -261,7 +261,7 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
             int loopStart = 0; // e.g., 0-4
             int loopEnd = 2; // e.g., 1-5 steps
 
-            auto forCmd = std::make_shared<ForCommand>(processName, loopStart, loopEnd, DELAYS_PER_EXEC);
+            auto forCmd = std::make_shared<ForCommand>(processName, "forLoop", loopStart, loopEnd, DELAYS_PER_EXEC);
             forCmd->addCommand(std::make_shared<DeclareCommand>(processName, "var1", 2, varTable, DELAYS_PER_EXEC));
             forCmd->addCommand(std::make_shared<DeclareCommand>(processName, "var2", 2, varTable, DELAYS_PER_EXEC));
 			forCmd->addCommand(std::make_shared<AddCommand>(processName, "var3", "var1", "var2", varTable, DELAYS_PER_EXEC));
