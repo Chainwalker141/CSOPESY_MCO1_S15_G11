@@ -144,9 +144,10 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
 
     // RANDOM INSTRUCTIONS
     default_random_engine generator(static_cast<unsigned>(time(nullptr)));
-    uniform_int_distribution<int> commandDist(0, 3); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
+    uniform_int_distribution<int> commandDist(0, 4); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
     uniform_int_distribution<int> modeDist(0, 100); // for determining which mode of the instruction to use
     uniform_int_distribution<int> valueDist(1, 500); // random values for Declare, Add, Sub
+	uniform_int_distribution<int> sleepDist(1, 5); // random sleep time for Sleep command
     int generatedVars = 0;
 
     for (int i = 0; i < totalIns; i++) {
@@ -252,6 +253,8 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
         }
         case 4: { // SLEEP
             //commandList.push(std::make_shared<PrintCommand>(processName, "val", DELAYS_PER_EXEC));
+			int value = sleepDist(generator);
+			commandList.push(std::make_shared<SleepCommand>(processName, "Sleeping for ", value, DELAYS_PER_EXEC));
             break;
         }
         case 5: { // FOR
