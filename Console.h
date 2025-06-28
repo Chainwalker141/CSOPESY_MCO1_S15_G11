@@ -17,11 +17,13 @@ public:
 	void setCurrentLine(int currentLine);
 	void setTotalLine(int totalLine);
 	void setTimestamp(string timestamp);
+	void setCoreID(int coreID);
 
 	string getProcessName();
 	int getCurrentLine();
 	int getTotalLine();
 	string getTimestamp();
+	int getCoreID();
 
 	string getContents();
 
@@ -44,6 +46,7 @@ private:
 	int currentLine;
 	int totalLine;
 	string timestamp;
+	int coreID = -1;
 	
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables

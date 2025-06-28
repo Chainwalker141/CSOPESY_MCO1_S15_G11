@@ -45,6 +45,14 @@ int Scheduler::getCoresAvailable() {
     return this->coresAvailable;
 }
 
+void Scheduler::setCoresUsed(int coresUsed) {
+    this->coresUsed = coresUsed;
+}
+
+void Scheduler::setCoresAvailable(int coresAvailable) {
+    this->coresAvailable = coresAvailable;
+}
+
 void Scheduler::setIsSchedulerTestRunning(bool isSchedulerTestRunning)
 {
 	this->isSchedulerTestRunning = isSchedulerTestRunning;
@@ -81,6 +89,7 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId)
         //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
     }
     else {
+		currentProcess->setCoreID(-1); // Reset Core ID for the process
         assignProcess(currentProcess); // Put Process back to the queue. TODO: MAYBE USE A DIFFERENT FUNCTION ?
     }
     
@@ -131,6 +140,7 @@ void Scheduler::start() {
                         break;
 
                     currentProcess = processQueue.front();
+					currentProcess->setCoreID(coreId); // Set Core ID for the process
                     processQueue.pop();
                     this->coresUsed++; // TODO: MAKE SETTER
                     this->coresAvailable--;

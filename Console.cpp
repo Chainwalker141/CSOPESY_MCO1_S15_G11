@@ -37,6 +37,10 @@ void Console::setCommandList(std::queue<std::shared_ptr<ICommand>> commandList) 
 	this->commandList = std::move(commandList);
 }
 
+void Console::setCoreID(int coreID) {
+	this->coreID = coreID;
+}
+
 string Console::getProcessName()
 {
 	return this->processName;
@@ -55,6 +59,10 @@ int Console::getTotalLine()
 string Console::getTimestamp()
 {
 	return this->timestamp;
+}
+
+int Console::getCoreID() {
+	return this->coreID;
 }
 
 std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
