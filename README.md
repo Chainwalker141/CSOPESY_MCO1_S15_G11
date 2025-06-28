@@ -6,3 +6,8 @@ S15 Group 11
 - Emy Laroza
 - Joaquin Sinjian
 - Patrick Leonida
+
+## To Run:
+While using Visual Studio 2022
+- Just press start without debugging
+- main.cpp however is where the main function is located
