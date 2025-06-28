@@ -11,4 +11,5 @@ public:
 
 private:
 	string messageToPrint;
+	int value; // Sleep duration in seconds
 };

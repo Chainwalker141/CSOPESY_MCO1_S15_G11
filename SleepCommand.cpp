@@ -1,10 +1,12 @@
 #include "SleepCommand.h"
 #include "ConsoleManager.h"
+#include <thread>
 
 SleepCommand::SleepCommand(string processName, string messageToPrint, int value, int delay)
 	: ICommand(processName, ICommand::SLEEP, delay)
 {
 	this->messageToPrint = messageToPrint;
+	this->value = value;
 }
 
 void SleepCommand::execute() {
@@ -14,25 +16,15 @@ void SleepCommand::execute() {
 
 	if (screen != screenMap.end()) {
 		auto console = screen->second;
-		auto varTable = console->getVarTable();
-		string finalMsg;
+		string finalMsg = this->messageToPrint;
 
-		// find if it is a variable name
-		auto it = varTable->find(this->messageToPrint);
-		if (it != varTable->end()) {
-			finalMsg = "Value from " + it->first + ": " + std::to_string(it->second);
-		}
-		// otherwise default
-		else {
-			finalMsg = "Hello world from " + this->processName;
-		}
-
-		std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " + finalMsg;
+		std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " + finalMsg + std::to_string(value) + " sec";
 
 		// Append to console's output
 		console->appendOutput(printLog);
+
+		// Sleep for the specified duration
+		std::this_thread::sleep_for(std::chrono::seconds(value));
 	}
-
-
 	busyWait(); // Simulate CPU cycle delay after execution
 }
