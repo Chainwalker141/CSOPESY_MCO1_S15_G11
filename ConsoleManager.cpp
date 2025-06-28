@@ -144,7 +144,7 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
 
     // RANDOM INSTRUCTIONS
     default_random_engine generator(static_cast<unsigned>(time(nullptr)));
-    uniform_int_distribution<int> commandDist(3, 3); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
+    uniform_int_distribution<int> commandDist(0, 3); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
     uniform_int_distribution<int> modeDist(0, 100); // for determining which mode of the instruction to use
     uniform_int_distribution<int> valueDist(1, 500); // random values for Declare, Add, Sub
     int generatedVars = 0;
