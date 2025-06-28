@@ -6,7 +6,7 @@ using namespace std;
 
 class SleepCommand : public ICommand {
 public:
-	SleepCommand(string processName, string messageToPrint, int delay);
+	SleepCommand(string processName, string messageToPrint, int value, int delay);
 	void execute() override;
 
 private:
