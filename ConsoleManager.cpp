@@ -144,20 +144,20 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
 
     // RANDOM INSTRUCTIONS
     default_random_engine generator(static_cast<unsigned>(time(nullptr)));
-    uniform_int_distribution<int> commandDist(5, 5); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
+    uniform_int_distribution<int> commandDist(0, 1); // 0 = Declare, 1 = Add, 2 = Sub, 3 = Print and so on
     uniform_int_distribution<int> modeDist(0, 100); // for determining which mode of the instruction to use
-    uniform_int_distribution<int> valueDist(1, 500); // random values for Declare, Add, Sub
+    uniform_int_distribution<int> valueDist(1, 10); // random values for Declare, Add, Sub
 	uniform_int_distribution<int> sleepDist(1, 5); // random sleep time for Sleep command
     int generatedVars = 0;
 
     for (int i = 0; i < totalIns; i++) {
-        int commandType = commandDist(generator);
+        int commandType = (i % 2 == 0) ? 0 : 2;
 
         
 
         switch (commandType) {
         case 0: { // PRINT
-            int mode = modeDist(generator) % 2;
+            int mode = 1;
             
             switch (mode) {
             case 0: { // no var
@@ -166,8 +166,8 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
             }
             case 1: { // with var
                 int value = valueDist(generator);
-                string varName = "var" + to_string(generatedVars++);
-                commandList.push(std::make_shared<DeclareCommand>(processName, varName, value, varTable, DELAYS_PER_EXEC));
+                string varName = "x"; //+ to_string(generatedVars++);
+                //commandList.push(std::make_shared<DeclareCommand>(processName, varName, value, varTable, DELAYS_PER_EXEC));
                 commandList.push(std::make_shared<PrintCommand>(processName, varName, varTable, DELAYS_PER_EXEC));
                 break;
             }
@@ -184,8 +184,8 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
         case 2: { // ADD
             int val1 = valueDist(generator); // val 1
             int val2 = valueDist(generator); // val 2
-            int mode = modeDist(generator) % 4;
-            string sumVarName = "sum" + to_string(generatedVars++); // var to store number
+            int mode = 1;
+            string sumVarName = "x";//"sum" + to_string(generatedVars++); // var to store number
 
             switch (mode) {
             case 0: { // both direct number
@@ -193,8 +193,8 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
                 break;
             }
             case 1: { // var 1 and number
-                string varName1 = "var" + to_string(generatedVars++);
-                commandList.push(std::make_shared<DeclareCommand>(processName, varName1, val1, varTable, DELAYS_PER_EXEC)); // declare a var first
+                string varName1 = "x"; //+ to_string(generatedVars++);
+                //commandList.push(std::make_shared<DeclareCommand>(processName, varName1, val1, varTable, DELAYS_PER_EXEC)); // declare a var first
                 commandList.push(std::make_shared<AddCommand>(processName, sumVarName, varName1, val2, varTable, DELAYS_PER_EXEC)); // add
                 break;
             }
