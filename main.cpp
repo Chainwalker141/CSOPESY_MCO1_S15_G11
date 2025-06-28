@@ -136,10 +136,10 @@ void Screen(std::vector<std::string> args) {
             if (ConsoleManager::getInstance()->screenExists(processName)) {
                 consoleScreen = ConsoleManager::getInstance()->getScreenMap()[processName];
 
-                /*if (consoleScreen->isProcessDone()) {
+                if (consoleScreen->isProcessDone()) {
                     cout << "Process " << processName << " has already finished execution. Cannot resume.\n";
                     return;
-                }*/
+                }
 
                 cout << "screen resumed\n";
             }

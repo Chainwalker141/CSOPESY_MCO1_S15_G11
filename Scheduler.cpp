@@ -68,13 +68,14 @@ void Scheduler::assignProcess(std::shared_ptr<Console> console) {
 
 void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId) {
     bool processDoneFlag = false;
+    
     for (int i = 0; i < this->timeQuantum; i++) {
 
         //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
 
         //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
         currentProcess->runInstruction();
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
 
         // Process is done but timeQuantum has not been finished
         if (currentProcess->getCurrentLine() == currentProcess->getTotalLine()) {
@@ -82,8 +83,8 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId)
             break;
         }
     }
-    this->coresUsed--; // TODO: MAKE SETTER
-    this->coresAvailable++;
+    this->coresUsed++; // TODO: MAKE SETTER
+    this->coresAvailable--;
 
     if (processDoneFlag) {
         //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
