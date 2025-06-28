@@ -1,4 +1,5 @@
 #include "SubCommand.h"
+#include "ConsoleManager.h"
 #include <iostream> // REMOVE. ONLY FOR TESTING
 
 SubCommand::SubCommand(string processName, string diffVar, int val1, int val2,
@@ -50,46 +51,62 @@ SubCommand::SubCommand(string processName, string diffVar, string var1, string v
 }
 
 void SubCommand::execute() {
-    int diff = 0;
-    int minuend = 0;
-    int subtrahend = 0;
+    auto screenMap = ConsoleManager::getInstance()->getScreenMap();
+    auto screen = screenMap.find(this->processName);
 
-    // Check if first value given is a variable
-    if (var1IsString && var1 != "") {
-        auto key = varTable->find(this->var1);
+    if (screen != screenMap.end()) {
+        auto console = screen->second;
 
-        // Check variable table
-        if (key != varTable->end()) {
-            minuend = key->second;
+        int diff = 0;
+        int minuend = 0;
+        int subtrahend = 0;
+
+        // Check if first value given is a variable
+        if (var1IsString && var1 != "") {
+            auto key = varTable->find(this->var1);
+
+            // Check variable table
+            if (key != varTable->end()) {
+                minuend = key->second;
+            }
+            else {
+                varTable->insert({ var1, 0 }); // Define variable with 0 if not previously declared
+            }
         }
         else {
-            varTable->insert({ var1, 0 }); // Define variable with 0 if not previously declared
+            minuend = val1;
         }
-    }
-    else {
-        minuend = val1;
-    }
 
-    // Check second value if variable
-    if (var2IsString && var2 != "") {
-        auto key = varTable->find(this->var2);
+        // Check second value if variable
+        if (var2IsString && var2 != "") {
+            auto key = varTable->find(this->var2);
 
-        // Check variable table
-        if (key != varTable->end()) {
-            subtrahend = key->second;
+            // Check variable table
+            if (key != varTable->end()) {
+                subtrahend = key->second;
+            }
+            else {
+                varTable->insert({ var2, 0 }); // Define variable with 0 if not previously declared
+            }
         }
         else {
-            varTable->insert({ var2, 0 }); // Define variable with 0 if not previously declared
+            subtrahend = val2;
         }
-    }
-    else {
-        subtrahend = val2;
-    }
 
-    diff = minuend - subtrahend;
+        diff = minuend - subtrahend;
 
-    varTable->insert({ diffVar, diff });
-    //cout << this->processName << " Diff: " << varTable->find(diffVar)->second; // COMMENT OUT. FOR TESTING
+        varTable->insert({ diffVar, diff });
+        //cout << this->processName << " Diff: " << varTable->find(diffVar)->second; // COMMENT OUT. FOR TESTING
+
+        std::string operand1 = var1IsString ? var1 : std::to_string(val1);
+        std::string operand2 = var2IsString ? var2 : std::to_string(val2);
+
+        std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
+            "Subtracted " + operand2 + " from " + operand1 + " to get " + std::to_string(diff) +
+            ", stored in variable: " + diffVar;
+
+        console->appendOutput(printLog);
+    }
 
     busyWait(); // Simulate CPU cycle delay after execution
 }

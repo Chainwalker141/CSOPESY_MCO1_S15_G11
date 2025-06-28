@@ -1,4 +1,5 @@
 #include "DeclareCommand.h"
+#include "ConsoleManager.h"
 #include <iostream> // TESTING
 
 
@@ -13,16 +14,28 @@ DeclareCommand::DeclareCommand(string processName, string varName, uint16_t valu
 }
 
 void DeclareCommand::execute() {
+	auto screenMap = ConsoleManager::getInstance()->getScreenMap();
+	auto screen = screenMap.find(this->processName);
 
-	auto keyVal = varTable->find(varName);
+	if (screen != screenMap.end()) {
+		auto console = screen->second;
+		auto keyVal = varTable->find(varName);
 
-	// Check existence in table
-	if (keyVal != varTable->end()) { // Exists: replace
-		keyVal->second = value;
+		// Check existence in table
+		if (keyVal != varTable->end()) { // Exists: replace
+			keyVal->second = value;
+		}
+		else {
+			varTable->insert({ varName, value }); // DNE: Add
+		}
+
+		std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
+			"Created Variable: " + varName + " = " + std::to_string(value);
+
+		console->appendOutput(printLog);
 	}
-	else {
-		varTable->insert({ varName, value }); // DNE: Add
-	}
+
+	
 
 	//cout << this->processName << " " << "declared " << varTable->find(varName)->first << " = " << varTable->find(varName)->second << "\n"; // COMMENT OUT. FOR TESTING
 
