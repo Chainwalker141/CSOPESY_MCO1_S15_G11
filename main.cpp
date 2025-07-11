@@ -9,6 +9,7 @@
 #include "Scheduler.h"
 #include <fstream>
 #include <random>
+#include "FlatMemoryAllocator.h"
 
 // Set global variables and config
 bool running = true;
@@ -19,6 +20,9 @@ int BATCH_PROCESS_FREQ;
 int MIN_INS;
 int MAX_INS;
 int DELAYS_PER_EXEC;
+size_t MAX_OVERALL_MEM;
+size_t MEM_PER_FRAME;
+size_t MEM_PER_PROC;
 
 
 void Exit() {
@@ -58,6 +62,15 @@ void readConfig() {
         else if (key == "delays-per-exec") {
             DELAYS_PER_EXEC = stoi(value);
         }
+        else if (key == "max-overall-mem") {
+            MAX_OVERALL_MEM = stoul(value);
+		}
+        else if (key == "mem-per-frame") {
+            MEM_PER_FRAME = stoul(value);
+        }
+        else if (key == "mem-per-proc") {
+            MEM_PER_PROC = stoul(value);
+        }
         else {
             cerr << "Unknown parameter: " << key << std::endl;
         }
@@ -82,6 +95,7 @@ void Initialize() {
     ConsoleManager::getInstance()->setInitialize(true); // initialize OS
     ConsoleManager::getInstance()->setMaxIns(MAX_INS);
     ConsoleManager::getInstance()->setMinIns(MIN_INS);
+	FlatMemoryAllocator::initialize(MAX_OVERALL_MEM, MEM_PER_FRAME, MEM_PER_PROC); // initialize memory allocator
     Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER); // initialize scheduler
     Scheduler::getInstance()->start();
     cout << "\n\nMOOD OS Initialized... \n\n";

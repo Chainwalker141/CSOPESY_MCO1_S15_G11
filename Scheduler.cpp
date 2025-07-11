@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <mutex>
-
+#include "FlatMemoryAllocator.h"
 
 using namespace std;
 
@@ -142,7 +142,22 @@ void Scheduler::start() {
 
                     currentProcess = processQueue.front();
 					currentProcess->setCoreID(coreId); // Set Core ID for the process
+
                     processQueue.pop();
+
+                    // Allocate a process in the memory
+					// NOTE: remove 100. There is already mem-per-proc that is set inhe FlatMemoryAllocator
+					FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
+                    if (flatMemoryInstance->allocate(100, currentProcess->getProcessName())) {
+						cout << "Process " << currentProcess->getProcessName() << " allocated in memory." << endl;
+                    }
+                    else {
+                        cout << "Failed to allocate memory for process " << currentProcess->getProcessName() << ". Skipping..." << endl;
+						processQueue.push(currentProcess); // Re-add process to the queue
+                    }
+
+
+
                     this->coresUsed++; // TODO: MAKE SETTER
                     this->coresAvailable--;
                 }
