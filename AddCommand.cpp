@@ -102,7 +102,7 @@ void AddCommand::execute() {
         (*varTable)[sumVar] = sum;
 
 
-        cout << "X = " << (*varTable)[sumVar];
+        /*cout << "X = " << (*varTable)[sumVar];*/
 
         //cout << this->processName << " Sum: " << varTable->find(sumVar)->second; // COMMENT OUT. sFOR TESTING
 

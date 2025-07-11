@@ -83,8 +83,8 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId)
             break;
         }
     }
-    this->coresUsed++; // TODO: MAKE SETTER
-    this->coresAvailable--;
+    this->coresUsed--; // TODO: MAKE SETTER
+    this->coresAvailable++;
 
     if (processDoneFlag) {
         //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
