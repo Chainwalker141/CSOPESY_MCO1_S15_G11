@@ -61,15 +61,6 @@ void AddCommand::execute() {
         int addend1 = 0;
         int addend2 = 0;
 
-        // Check if sumVar has value and exists
-
-        auto sumVarTable = varTable->find(this->sumVar);
-
-       /* if (sumVarTable != varTable->end()) {
-            sum = sumVarTable->second;
-        }*/
-
-
         // Check if first value given is a variable
         if (var1IsString && var1 != "") {
             auto key = varTable->find(this->var1);
@@ -106,13 +97,12 @@ void AddCommand::execute() {
 
         // Do operation
         sum = addend1 + addend2;
-        cout << "X = " << sum;
+
         // If sumVar variable exists in varTable, replace value with sum. Otherwise, insert
-        if (sumVarTable != varTable->end())
-            (*varTable)[sumVar] = sum;
-        else {
-            varTable->insert({ sumVar, sum });
-        }
+        (*varTable)[sumVar] = sum;
+
+
+        cout << "X = " << (*varTable)[sumVar];
 
         //cout << this->processName << " Sum: " << varTable->find(sumVar)->second; // COMMENT OUT. sFOR TESTING
 
