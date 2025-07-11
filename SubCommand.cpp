@@ -61,6 +61,9 @@ void SubCommand::execute() {
         int minuend = 0;
         int subtrahend = 0;
 
+        // Check if diffVar has value and put it in diff
+        auto diffVarTable = varTable->find(this->diffVar);
+
         // Check if first value given is a variable
         if (var1IsString && var1 != "") {
             auto key = varTable->find(this->var1);
@@ -93,8 +96,16 @@ void SubCommand::execute() {
             subtrahend = val2;
         }
 
+        // Do operation
         diff = minuend - subtrahend;
 
+        // Check if diffVar variable exists in varTable. If true, replace value, if not insert value.
+        if (diffVarTable != varTable->end()) {
+            (*varTable)[diffVar] = diff;
+        }
+        else {
+            varTable->insert({ diffVar, diff });
+        }
         varTable->insert({ diffVar, diff });
         //cout << this->processName << " Diff: " << varTable->find(diffVar)->second; // COMMENT OUT. FOR TESTING
 

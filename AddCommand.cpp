@@ -58,6 +58,17 @@ void AddCommand::execute() {
         auto console = screen->second;
 
         int sum = 0;
+        int addend1 = 0;
+        int addend2 = 0;
+
+        // Check if sumVar has value and exists
+
+        auto sumVarTable = varTable->find(this->sumVar);
+
+       /* if (sumVarTable != varTable->end()) {
+            sum = sumVarTable->second;
+        }*/
+
 
         // Check if first value given is a variable
         if (var1IsString && var1 != "") {
@@ -65,14 +76,15 @@ void AddCommand::execute() {
 
             // Check variable table
             if (key != varTable->end()) {
-                sum = sum + key->second;
+                addend1 = key->second;
             }
             else {
-                varTable->insert({ var1, 0 }); // Define variable with 0 if not previously declared
+                addend1 = 0;
+                varTable->insert({ var1, addend1 }); // Define variable with 0 if not previously declared
             }
         }
         else {
-            sum = sum + val1;
+            addend1 = val1;
         }
 
         // Check second value if variable
@@ -81,17 +93,27 @@ void AddCommand::execute() {
 
             // Check variable table
             if (key != varTable->end()) {
-                sum = sum + key->second;
+                addend2 = key->second;
             }
             else {
-                varTable->insert({ var2, 0 }); // Define variable with 0 if not previously declared
+                addend2 = 0;
+                varTable->insert({ var2, addend2 }); // Define variable with 0 if not previously declared
             }
         }
         else {
-            sum = sum + val2;
+            addend2 = val2;
         }
 
-        varTable->insert({ sumVar, sum });
+        // Do operation
+        sum = addend1 + addend2;
+        cout << "X = " << sum;
+        // If sumVar variable exists in varTable, replace value with sum. Otherwise, insert
+        if (sumVarTable != varTable->end())
+            (*varTable)[sumVar] = sum;
+        else {
+            varTable->insert({ sumVar, sum });
+        }
+
         //cout << this->processName << " Sum: " << varTable->find(sumVar)->second; // COMMENT OUT. sFOR TESTING
 
         std::string operand1 = var1IsString ? var1 : std::to_string(val1);
@@ -103,7 +125,7 @@ void AddCommand::execute() {
 
         console->appendOutput(printLog);
     }
-    
+
 
     busyWait(); // Simulate CPU cycle delay after execution
 }
