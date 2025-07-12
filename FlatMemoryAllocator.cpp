@@ -45,7 +45,7 @@ void* FlatMemoryAllocator::allocate(size_t size, string processName) {
             return &memory[i];
         }
         else {
-            if (canAllocateAt(i, memPerProc)) {
+            if (canAllocateAt(i, memPerProc, processName)) {
 				cout << "Found available block at index: " << i << endl;
                 allocateAt(i, memPerProc, processName);
             }
@@ -61,7 +61,7 @@ void FlatMemoryAllocator::deallocate(void* ptr, string processName) {
     size_t index = static_cast<char*>(ptr) - &memory[0];
     if (allocationMap[index] == processName) {
         deallocateAt(index, processName);
-		cout << "Deallocating memory for process: " << processName << endl;
+        activeProcesses.erase(processName);
     }
 }
 
@@ -82,7 +82,13 @@ void FlatMemoryAllocator::initializeMemory() {
 }
 
 // Check if a block can be allocated at index
-bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t size) {
+bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t size, string processName) {
+
+    // returns false if process is already in memory (to prevent multiple allocation)
+    if (activeProcesses.count(processName)) {
+        return false;
+    }
+
     if (index + size > maximumSize) return false;
 
     for (size_t i = 0; i < size; ++i) {
@@ -108,6 +114,7 @@ void FlatMemoryAllocator::allocateAt(size_t index, size_t size, string processNa
 		memory[index + i] = '#'; // Mark as allocated
         allocationMap[index + i] = processName;
     }
+    activeProcesses.insert(processName);
     allocatedSize += size;
 
 	cout << "Allocated " << size << " bytes at index " << index << " for process: " << processName << endl;
@@ -115,11 +122,14 @@ void FlatMemoryAllocator::allocateAt(size_t index, size_t size, string processNa
 
 // Deallocate memory at index
 void FlatMemoryAllocator::deallocateAt(size_t index, string processName) {
+    cout << "Deallocating memory for process: " << processName << endl;
+    //cout << "index: " << index << " is: " << memory[index] << " allocation map: " << allocationMap[index] << endl;
     while (index < maximumSize && (allocationMap[index] == processName)) {
         memory[index] = '.';
         allocationMap[index] = "";
         ++index;
     }
+    //cout << "index: " << index-index << " is: " << memory[index-index] << " allocation map: " << allocationMap[index - index] << endl;
 }
 
 void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
@@ -149,31 +159,32 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
 
     file << "Number of processes in memory: " << processes.size() << "\n";
 
-    // External fragmentation calculation (assume block = memPerFrame)
-    int externalFrag = 0;
-    int freeBlockSize = 0;
+    // an extremely overcomplicated block of code which doesnt even work
+    //// External fragmentation calculation (assume block = memPerFrame)
+    //int externalFrag = 0;
+    //int freeBlockSize = 0;
 
-    for (size_t i = 0; i < memory.size(); ++i) {
-        if (memory[i] == '.') {
-            freeBlockSize++;
-        }
-        else {
-            if (freeBlockSize > 0 && freeBlockSize < memPerProc) {
-                externalFrag += freeBlockSize;
-            }
-            freeBlockSize = 0;
-        }
-    }
+    //for (size_t i = 0; i < memory.size(); ++i) {
+    //    if (memory[i] == '.') {
+    //        freeBlockSize++;
+    //    }
+    //    else {
+    //        if (freeBlockSize > 0 && freeBlockSize < memPerProc) {
+    //            externalFrag += freeBlockSize;
+    //        }
+    //        freeBlockSize = 0;
+    //    }
+    //}
 
-    // Check at end of memory
-    if (freeBlockSize > 0 && freeBlockSize < memPerProc) {
-        externalFrag += freeBlockSize;
-    }
+    //// Check at end of memory
+    //if (freeBlockSize > 0 && freeBlockSize < memPerProc) {
+    //    externalFrag += freeBlockSize;
+    //}
 
-    file << "Total external fragmentation in KB: " << externalFrag << "\n\n";
+    file << "Total external fragmentation in KB: " <<  maximumSize-(processes.size()*memPerProc) << "\n\n";
 
     // Print layout (descending)
-    file << "----end---- = " << maximumSize << "\n\n";
+    file << "----end---- = " << maximumSize << "\n";
 
     std::string currentProcess = "";
     int endByte = -1;
@@ -181,24 +192,21 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
 
     for (int i = static_cast<int>(memory.size()) - 1; i >= 0; --i) {
         std::string proc = allocationMap[i];
-
         if (proc == currentProcess) {
             startByte = i;
-        }
-        else {
+        } else {
             if (!currentProcess.empty()) {
+                // Log the previous process block
                 file << endByte << "\n";
                 file << currentProcess << "\n";
-                file << startByte << endl;
+                file << startByte << "\n\n";
             }
 
-            if (!proc.empty()) {
-                currentProcess = proc;
-                endByte = (i + 1);
+            // Start a new process block
+            currentProcess = proc;
+            if (!currentProcess.empty()) {
+                endByte = i + 1;
                 startByte = i;
-            }
-            else {
-                currentProcess = "";
             }
         }
     }

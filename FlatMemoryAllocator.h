@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 class FlatMemoryAllocator : public IMemoryAllocator {
 public:
@@ -33,10 +34,11 @@ private:
     size_t allocatedSize;
     std::vector<char> memory;        // Simulated memory ('.' = free, '#' = allocated)
     std::unordered_map<size_t, string> allocationMap; // True = allocated, False = free
+    std::unordered_set<std::string> activeProcesses;
 
     // Helper methods
     void initializeMemory(); // Initializes memory and allocation map
-    bool canAllocateAt(size_t index, size_t size); // Checks if block can be allocated
+    bool canAllocateAt(size_t index, size_t size, string processName); // Checks if block can be allocated
     void allocateAt(size_t index, size_t size, string processName);    // Marks block as allocated
     void deallocateAt(size_t index, string processName);    
     

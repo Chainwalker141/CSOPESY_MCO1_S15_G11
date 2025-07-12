@@ -70,32 +70,36 @@ void Scheduler::assignProcess(std::shared_ptr<Console> console) {
 void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, void* memoryPtr) {
     bool processDoneFlag = false;
     
-    for (int i = 0; i < this->timeQuantum; i++) {
+    // Log memory state to file after a quantum cycle
+    FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
+    std::string filename = "memory_stamp_" + std::to_string(quantumCycle) + ".txt";
+    flatMemoryInstance->logMemoryStateToFile(filename);
 
-        //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
+    if (memoryPtr) {
+        for (int i = 0; i < this->timeQuantum; i++) {
 
-        //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
-		
-        currentProcess->runInstruction();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
+            //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
 
-        // Process is done but timeQuantum has not been finished
-        if (currentProcess->getCurrentLine() == currentProcess->getTotalLine()) {
-            processDoneFlag = true;
-            break;
+            //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
+
+            currentProcess->runInstruction();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
+
+            // Process is done but timeQuantum has not been finished
+            if (currentProcess->getCurrentLine() == currentProcess->getTotalLine()) {
+                processDoneFlag = true;
+                break;
+            }
         }
-
         static std::mutex quantumMutex;
         {
             std::lock_guard<std::mutex> lock(quantumMutex);
             quantumCycle++;
         }
     }
-
-    // Log memory state to file after a quantum cycle
-    FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
-    std::string filename = "memory_stamp_" + std::to_string(quantumCycle) + ".txt";
-    flatMemoryInstance->logMemoryStateToFile(filename);
+    else {
+        //cout << "Process " << currentProcess->getProcessName() << " not in memory, skipping... \n" ;
+    }
 
     this->coresUsed--; // TODO: MAKE SETTER
     this->coresAvailable++;
@@ -168,13 +172,14 @@ void Scheduler::start() {
                     
 					allocatedMemory = flatMemoryInstance->allocate(100, currentProcess->getProcessName());
 
+                    // FOR DEBUGGING
                     if (allocatedMemory) {
-						cout << "Process " << currentProcess->getProcessName() << " allocated in memory." << endl;
+						//cout << "Process " << currentProcess->getProcessName() << " allocated in memory." << endl;
                         
                     }
                     else {
-                        cout << "Failed to allocate memory for process " << currentProcess->getProcessName() << ". Skipping..." << endl;
-						processQueue.push(currentProcess); // Re-add process to the queue
+                        //cout << "Failed to allocate memory for process " << currentProcess->getProcessName() << ". Skipping..." << endl;
+						//processQueue.push(currentProcess); // Re-add process to the queue
                     }
 
 
