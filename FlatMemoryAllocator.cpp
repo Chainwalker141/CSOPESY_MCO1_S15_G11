@@ -123,7 +123,7 @@ void FlatMemoryAllocator::deallocateAt(size_t index, string processName) {
 }
 
 void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
-    std::ofstream file(filename, std::ios::app); // append mode
+    std::ofstream file(filename);
 
     if (!file.is_open()) {
         std::cerr << "Error opening memory log file.\n";
@@ -183,18 +183,19 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
         std::string proc = allocationMap[i];
 
         if (proc == currentProcess) {
-            startByte = i * memPerFrame;
+            startByte = i;
         }
         else {
             if (!currentProcess.empty()) {
+                file << endByte << "\n";
                 file << currentProcess << "\n";
-                file << "Memory Range: " << startByte << " - " << endByte << "\n\n";
+                file << startByte << endl;
             }
 
             if (!proc.empty()) {
                 currentProcess = proc;
-                endByte = (i + 1) * memPerFrame;
-                startByte = i * memPerFrame;
+                endByte = (i + 1);
+                startByte = i;
             }
             else {
                 currentProcess = "";
@@ -204,8 +205,9 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
 
     // Edge case: first block
     if (!currentProcess.empty()) {
+		file << endByte << "\n";
         file << currentProcess << "\n";
-        file << "Memory Range: " << startByte << " - " << endByte << "\n\n";
+        file << startByte << endl;
     }
 
     file << "-----start----- = 0\n\n";
