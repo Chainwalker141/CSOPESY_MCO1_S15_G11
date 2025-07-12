@@ -2,6 +2,10 @@
 #include <algorithm> // for std::fill
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <ctime>
+#include <iomanip>
+#include <unordered_set>
 
 using namespace std;
 
@@ -36,9 +40,6 @@ void* FlatMemoryAllocator::allocate(size_t size, string processName) {
 
     int framesPerProc = static_cast<int>(memPerProc);
 
-	cout << "Allocating " << size << " bytes for process: " << processName << endl;
-	cout << "Frames per process: " << framesPerProc << endl;
-
     for (size_t i = 0; i < maximumSize; ++i) {
         if (allocationMap[i] == processName) {
             return &memory[i];
@@ -48,9 +49,6 @@ void* FlatMemoryAllocator::allocate(size_t size, string processName) {
 				cout << "Found available block at index: " << i << endl;
                 allocateAt(i, memPerProc, processName);
             }
-            else {
-				cout << "Block at index " << i << " is not available for allocation." << endl;
-            }
         }
     }
 
@@ -59,11 +57,12 @@ void* FlatMemoryAllocator::allocate(size_t size, string processName) {
 }
 
 // Deallocate memory block
-void FlatMemoryAllocator::deallocate(void* ptr) {
+void FlatMemoryAllocator::deallocate(void* ptr, string processName) {
     size_t index = static_cast<char*>(ptr) - &memory[0];
-    /*if (allocationMap[index]) {
-        deallocateAt(index);
-    }*/
+    if (allocationMap[index] == processName) {
+        deallocateAt(index, processName);
+		cout << "Deallocating memory for process: " << processName << endl;
+    }
 }
 
 // Visualize memory
@@ -115,10 +114,100 @@ void FlatMemoryAllocator::allocateAt(size_t index, size_t size, string processNa
 }
 
 // Deallocate memory at index
-//void FlatMemoryAllocator::deallocateAt(size_t index) {
-//    while (index < maximumSize && allocationMap[index]) {
-//        memory[index] = '#';
-//        allocationMap[index] = false;
-//        ++index;
-//    }
-//}
+void FlatMemoryAllocator::deallocateAt(size_t index, string processName) {
+    while (index < maximumSize && (allocationMap[index] == processName)) {
+        memory[index] = '.';
+        allocationMap[index] = "";
+        ++index;
+    }
+}
+
+void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
+    std::ofstream file(filename, std::ios::app); // append mode
+
+    if (!file.is_open()) {
+        std::cerr << "Error opening memory log file.\n";
+        return;
+    }
+
+    // Timestamp
+    std::time_t now = std::time(nullptr);
+    std::tm tm;
+    localtime_s(&tm, &now);  // Safe version on MSVC
+
+    
+ /*   if (file.is_open()) {*/
+    file << "Timestamp: (" << std::put_time(&tm, "%m/%d/%Y %I:%M:%S%p") << ")\n";
+        /*file.close();*/
+    //}
+
+    // Count number of processes in memory
+    std::unordered_set<std::string> processes;
+    for (const auto& [index, proc] : allocationMap) {
+        if (!proc.empty()) processes.insert(proc);
+    }
+
+    file << "Number of processes in memory: " << processes.size() << "\n";
+
+    // External fragmentation calculation (assume block = memPerFrame)
+    int externalFrag = 0;
+    int freeBlockSize = 0;
+
+    for (size_t i = 0; i < memory.size(); ++i) {
+        if (memory[i] == '.') {
+            freeBlockSize++;
+        }
+        else {
+            if (freeBlockSize > 0 && freeBlockSize < memPerProc) {
+                externalFrag += freeBlockSize;
+            }
+            freeBlockSize = 0;
+        }
+    }
+
+    // Check at end of memory
+    if (freeBlockSize > 0 && freeBlockSize < memPerProc) {
+        externalFrag += freeBlockSize;
+    }
+
+    file << "Total external fragmentation in KB: " << externalFrag << "\n\n";
+
+    // Print layout (descending)
+    file << "----end---- = " << maximumSize << "\n\n";
+
+    std::string currentProcess = "";
+    int endByte = -1;
+    int startByte = -1;
+
+    for (int i = static_cast<int>(memory.size()) - 1; i >= 0; --i) {
+        std::string proc = allocationMap[i];
+
+        if (proc == currentProcess) {
+            startByte = i * memPerFrame;
+        }
+        else {
+            if (!currentProcess.empty()) {
+                file << currentProcess << "\n";
+                file << "Memory Range: " << startByte << " - " << endByte << "\n\n";
+            }
+
+            if (!proc.empty()) {
+                currentProcess = proc;
+                endByte = (i + 1) * memPerFrame;
+                startByte = i * memPerFrame;
+            }
+            else {
+                currentProcess = "";
+            }
+        }
+    }
+
+    // Edge case: first block
+    if (!currentProcess.empty()) {
+        file << currentProcess << "\n";
+        file << "Memory Range: " << startByte << " - " << endByte << "\n\n";
+    }
+
+    file << "-----start----- = 0\n\n";
+    file.close();
+}

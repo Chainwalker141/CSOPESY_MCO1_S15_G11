@@ -14,11 +14,12 @@ public:
 
     // Core interface overrides
     void* allocate(size_t size, string processName) override;
-    void deallocate(void* ptr) override;
+    void deallocate(void* ptr, string processName) override;
     std::string visualizeMemory() override;
 
     // Getters
     static FlatMemoryAllocator* getInstance();
+    void logMemoryStateToFile(const std::string& filename);
 
 private:
     // static variables
@@ -37,6 +38,7 @@ private:
     void initializeMemory(); // Initializes memory and allocation map
     bool canAllocateAt(size_t index, size_t size); // Checks if block can be allocated
     void allocateAt(size_t index, size_t size, string processName);    // Marks block as allocated
-    void deallocateAt(size_t index);               // Frees block starting at index
+    void deallocateAt(size_t index, string processName);    
+    
 };
 

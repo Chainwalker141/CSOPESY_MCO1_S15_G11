@@ -17,6 +17,7 @@ private:
     int coresUsed;
     int coresAvailable;
     int timeQuantum; // RR Implementation
+	static int quantumCycle; // remove after activity week 10
 
     static Scheduler* scheduler;
     std::vector<std::thread> coreThreads;
@@ -26,7 +27,7 @@ private:
     std::condition_variable queueCV;
 
     void fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreId);
-    void rrScheduler(std::shared_ptr<Console> currentProcess, int coreId);
+    void rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, void* memoryPtr);
 
 public:
     Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int coresAvailable, int timeQuantum, Scheduler::schedulingAlgorithm algo);
