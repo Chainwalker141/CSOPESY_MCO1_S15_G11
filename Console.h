@@ -10,7 +10,7 @@ using namespace std;
 
 class Console {
 public:
-	Console(string processName, int currentLine, int totalLine, string timestamp);
+	Console(string processName, int currentLine, int totalLine, string timestamp, size_t mem_size);
 
 	// GETTERS & SETTERS
 	void setProcessName(string processName);
@@ -18,12 +18,14 @@ public:
 	void setTotalLine(int totalLine);
 	void setTimestamp(string timestamp);
 	void setCoreID(int coreID);
+	void setMemSize(size_t memSize);
 
 	string getProcessName();
 	int getCurrentLine();
 	int getTotalLine();
 	string getTimestamp();
 	int getCoreID();
+	size_t getMemSize();
 
 	string getContents();
 	bool isProcessDone();
@@ -45,9 +47,11 @@ public:
 private:
 	string processName;
 	int currentLine;
+	size_t mem_size;
 	int totalLine;
 	string timestamp;
 	int coreID = -1;
+
 	
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables

@@ -4,12 +4,13 @@
 
 using namespace std;
 
-Console::Console(string processName, int currentLine, int totalLine, string timestamp)
+Console::Console(string processName, int currentLine, int totalLine, string timestamp, size_t mem_size)
 {
 	this->processName = processName;
 	this->currentLine = currentLine;
 	this->totalLine = totalLine;
 	this->timestamp = timestamp;
+	this->mem_size = mem_size;
     this->varTable = make_shared<std::unordered_map<string, uint16_t>>();
 }
 
@@ -41,6 +42,10 @@ void Console::setCoreID(int coreID) {
 	this->coreID = coreID;
 }
 
+void Console::setMemSize(size_t memSize) {
+	this->mem_size = memSize;
+}
+
 string Console::getProcessName()
 {
 	return this->processName;
@@ -63,6 +68,10 @@ string Console::getTimestamp()
 
 int Console::getCoreID() {
 	return this->coreID;
+}
+
+size_t Console::getMemSize() {
+	return this->mem_size;
 }
 
 std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {

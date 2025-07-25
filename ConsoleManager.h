@@ -29,7 +29,8 @@ public:
 	void setMinIns(int minIns);
 
 	// This is for generating dummy processes
-	void schedulerTest(int BATCH_PROCESS_FREQ, int DELAYS_PER_EXEC);
+	size_t generateRandBase2(size_t minVal, size_t maxVal);
+	void schedulerTest(int BATCH_PROCESS_FREQ, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC);
 
 	// CommandList Generation
 	void generateCommands(std::shared_ptr<Console>, int DELAYS_PER_EXEC);

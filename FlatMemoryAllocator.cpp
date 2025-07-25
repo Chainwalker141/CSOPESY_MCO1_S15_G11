@@ -12,8 +12,8 @@ using namespace std;
 FlatMemoryAllocator* FlatMemoryAllocator::flatMemoryAllocator = nullptr;
 
 // Constructor
-FlatMemoryAllocator::FlatMemoryAllocator(size_t maximumSize, size_t memPerFrame, size_t memPerProc)
-    : maximumSize(maximumSize), memPerFrame(memPerFrame), memPerProc(memPerProc), allocatedSize(0) {
+FlatMemoryAllocator::FlatMemoryAllocator(size_t maximumSize, size_t memPerFrame)
+    : maximumSize(maximumSize), memPerFrame(memPerFrame), allocatedSize(0) {
     
     initializeMemory();
 }
@@ -24,30 +24,53 @@ FlatMemoryAllocator::~FlatMemoryAllocator() {
     allocationMap.clear();
 }
 
-void FlatMemoryAllocator::initialize(size_t maximumSize, size_t memPerFrame, size_t memPerProc) {
-    flatMemoryAllocator = new FlatMemoryAllocator(maximumSize, memPerFrame, memPerProc);
+void FlatMemoryAllocator::initialize(size_t maximumSize, size_t memPerFrame) {
+    flatMemoryAllocator = new FlatMemoryAllocator(maximumSize, memPerFrame);
 }
 
 FlatMemoryAllocator* FlatMemoryAllocator::getInstance() {
     return flatMemoryAllocator;
 }
 
-// Allocate memory block
-void* FlatMemoryAllocator::allocate(size_t size, string processName) {
-    // Find the first available block that can accommodate the process
-    int freeFramesFound = 0;
-    int startIndex = -1;
+int FlatMemoryAllocator::getTotalFrames() {
+    return totalFrames;
+}
 
-    int framesPerProc = static_cast<int>(memPerProc);
+void* FlatMemoryAllocator::getPointerToProcess(string processName) {
+    for (size_t i = 0; i < maximumSize; ++i) {
+        if (allocationMap[i] == processName) {
+            return &memory[i];
+        }
+    }
+    return nullptr;
+}
+
+bool FlatMemoryAllocator::isProcessActive(string processName) const {
+    return activeProcesses.find(processName) != activeProcesses.end();
+}
+
+// Allocate memory block
+void* FlatMemoryAllocator::allocate(size_t memSize, string processName) {
+    // determine how many frames are needed
+    size_t framesNeeded = (memSize + memPerFrame - 1) / memPerFrame;
+
+    // check if pages needed exceeds number of frames available
+    if (framesNeeded > freeFrameList.size()) {
+        //std::cerr << "Memory Allocation Failed. Not Enough free Frames. \n";
+        return nullptr;
+    }
+
+    // Find the first available block that can accommodate the process
+    size_t remainingMemToAllocate = memSize;
 
     for (size_t i = 0; i < maximumSize; ++i) {
         if (allocationMap[i] == processName) {
             return &memory[i];
         }
         else {
-            if (canAllocateAt(i, memPerProc, processName)) {
+            if (canAllocateAt(i, memSize, processName)) {
 				cout << "Found available block at index: " << i << endl;
-                allocateAt(i, memPerProc, processName);
+                allocateAt(i, memSize, processName);
             }
         }
     }
@@ -73,25 +96,29 @@ std::string FlatMemoryAllocator::visualizeMemory() {
 // Initialize memory
 void FlatMemoryAllocator::initializeMemory() {
     totalFrames = static_cast<int>(maximumSize / memPerFrame);
-
     memory.resize(maximumSize, '.');          
     allocationMap.clear();                     // just in case
     for (size_t i = 0; i < maximumSize; ++i) {
         allocationMap[i] = "";                 // "" = free
     }
+
+    // initialize free frame list from frame 0 -> totalFrames-1
+    for (size_t i = 0; i < static_cast<size_t>(totalFrames); ++i) {
+        freeFrameList.push_back(i);
+    }
 }
 
 // Check if a block can be allocated at index
-bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t size, string processName) {
+bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t memSize, string processName) {
 
     // returns false if process is already in memory (to prevent multiple allocation)
     if (activeProcesses.count(processName)) {
         return false;
     }
 
-    if (index + size > maximumSize) return false;
+    if (index + memSize > maximumSize) return false;
 
-    for (size_t i = 0; i < size; ++i) {
+    for (size_t i = 0; i < memSize; ++i) {
         size_t pos = index + i;
         auto it = allocationMap.find(pos);
 
@@ -103,25 +130,25 @@ bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t size, string proces
     return true;
 }
 
-// Allocate memory at index
-void FlatMemoryAllocator::allocateAt(size_t index, size_t size, string processName) {
-    /*for (size_t i = 0; i < size; ++i) {
-        memory[index + i] = '.';
-        allocationMap[index + i] = true;
-    }
-    allocatedSize += size;*/
-    for (size_t i = 0; i < memPerProc; ++i) {
+// Allocate memory at frame
+void FlatMemoryAllocator::allocateAt(size_t index, size_t memSize, string processName) {
+    size_t frameIndex = freeFrameList.back();
+    freeFrameList.pop_back();
+
+    for (size_t i = 0; i < memSize; ++i) {
 		memory[index + i] = '#'; // Mark as allocated
         allocationMap[index + i] = processName;
     }
     activeProcesses.insert(processName);
-    allocatedSize += size;
+    allocatedSize += memSize;
 
-	cout << "Allocated " << size << " bytes at index " << index << " for process: " << processName << endl;
+	cout << "Allocated " << memSize << " bytes at frame " << frameIndex << " for process: " << processName << endl;
+    cout << "Free frames: " << freeFrameList.size() << endl;
 }
 
 // Deallocate memory at index
 void FlatMemoryAllocator::deallocateAt(size_t index, string processName) {
+
     cout << "Deallocating memory for process: " << processName << endl;
     //cout << "index: " << index << " is: " << memory[index] << " allocation map: " << allocationMap[index] << endl;
     while (index < maximumSize && (allocationMap[index] == processName)) {
@@ -181,7 +208,7 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
     //    externalFrag += freeBlockSize;
     //}
 
-    file << "Total external fragmentation in KB: " <<  maximumSize-(processes.size()*memPerProc) << "\n\n";
+    //file << "Total external fragmentation in KB: " << maximumSize-(processes.size()*memPerProc) << "\n\n";
 
     // Print layout (descending)
     file << "----end---- = " << maximumSize << "\n";

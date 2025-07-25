@@ -98,7 +98,19 @@ std::string ConsoleManager::getCurrentTimeStamp() {
     return oss.str();
 }
 
-void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC) {
+size_t ConsoleManager::generateRandBase2(size_t minVal, size_t maxVal) {
+    int minExp = static_cast<int>(std::ceil(std::log2(minVal)));
+    int maxExp = static_cast<int>(std::floor(std::log2(maxVal)));
+
+    if (minExp > maxExp) return 1ULL << minExp;
+
+    static std::mt19937 gen(std::random_device{}());
+    std::uniform_int_distribution<int> dist(minExp, maxExp);
+
+    return 1ULL << dist(gen);
+}
+
+void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC) {
     static int process_counter = 0;
     while (Scheduler::getInstance()->getIsSchedulerTestRunning()) {
         for (int i = 0; i < NUM_PROCESSES; i++) {
@@ -108,9 +120,10 @@ void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC) {
 
             //int totalIns = 100;
             int totalIns = generateRandInt(minIns, maxIns); // Generate random instruction total
+            size_t memSize = generateRandBase2(MIN_MEM_PER_PROC, MAX_MEM_PER_PROC);
             
             shared_ptr<Console> processConsole = make_shared<Console>(
-                processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
+                processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp(), memSize); // creates a process "P(N)" which has 10 lines and created at a certain time with a random memSize
 
             ConsoleManager::getInstance()->generateCommands(processConsole, DELAYS_PER_EXEC);
             ConsoleManager::getInstance()->registerConsole(processConsole);

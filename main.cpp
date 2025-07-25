@@ -22,7 +22,8 @@ int MAX_INS;
 int DELAYS_PER_EXEC;
 size_t MAX_OVERALL_MEM;
 size_t MEM_PER_FRAME;
-size_t MEM_PER_PROC;
+size_t MIN_MEM_PER_PROC;
+size_t MAX_MEM_PER_PROC;
 
 
 void Exit() {
@@ -68,8 +69,11 @@ void readConfig() {
         else if (key == "mem-per-frame") {
             MEM_PER_FRAME = stoul(value);
         }
-        else if (key == "mem-per-proc") {
-            MEM_PER_PROC = stoul(value);
+        else if (key == "min-mem-per-proc") {
+            MIN_MEM_PER_PROC = stoul(value);
+        }
+        else if (key == "max-mem-per-proc") {
+            MAX_MEM_PER_PROC = stoul(value);
         }
         else {
             cerr << "Unknown parameter: " << key << std::endl;
@@ -86,19 +90,34 @@ void printConfig() {
     cout << "min_ins: " << MIN_INS << endl;
     cout << "max_ins: " << MAX_INS << endl;
     cout << "delays_per_exec: " << DELAYS_PER_EXEC << endl;
+    cout << "max_overall_mem: " << MAX_OVERALL_MEM << endl;
+    cout << "mem_per_frame: " << MEM_PER_FRAME << endl;
+    cout << "min_mem_per_proc: " << MIN_MEM_PER_PROC << endl;
+    cout << "max_mem_per_proc: " << MAX_MEM_PER_PROC << endl;
 }
 
 void Initialize() {
-    
     readConfig();
     printConfig();
     ConsoleManager::getInstance()->setInitialize(true); // initialize OS
     ConsoleManager::getInstance()->setMaxIns(MAX_INS);
     ConsoleManager::getInstance()->setMinIns(MIN_INS);
-	FlatMemoryAllocator::initialize(MAX_OVERALL_MEM, MEM_PER_FRAME, MEM_PER_PROC); // initialize memory allocator
+	FlatMemoryAllocator::initialize(MAX_OVERALL_MEM, MEM_PER_FRAME); // initialize memory allocator
     Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER); // initialize scheduler
     Scheduler::getInstance()->start();
+    cout << "total Frames: " << FlatMemoryAllocator::getInstance()->getTotalFrames();
     cout << "\n\nMOOD OS Initialized... \n\n";
+}
+
+// helper function for checking if number is a power of 2 (for memory sizes)
+bool isPowerOfTwo(size_t n) {
+    if (n == 0) return false;
+
+    while (n % 2 == 0) {
+        n /= 2;
+    }
+
+    return n == 1;
 }
 
 void Screen(std::vector<std::string> args) {
@@ -130,11 +149,19 @@ void Screen(std::vector<std::string> args) {
         }
 
         // From here on: only for -s or -r with <ProcessName>
-        if (args.size() != 2) {
-            throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName>");
+        if (args.size() != 3) {
+            throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName> <Memory Size>");
         }
+        
 
         string processName = args[1];
+        size_t memorySize = stoull(args[2]);
+
+        // check if memory size is valid
+        if (!isPowerOfTwo(memorySize)) {
+            throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2");
+        }
+
         shared_ptr<Console> consoleScreen;
 
         if (screenCommand == "-s") {
@@ -148,7 +175,7 @@ void Screen(std::vector<std::string> args) {
                 int totalIns = distrib(gen);
 
                 consoleScreen = make_shared<Console>(
-                    processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp()); // creates a process "P(N)" which has 10 lines and created at a certain time
+                    processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp(), memorySize); // creates a process "P(N)" which has 10 lines and created at a certain time with 64 bytes of memory
 
                 ConsoleManager::getInstance()->generateCommands(consoleScreen, DELAYS_PER_EXEC);
                 ConsoleManager::getInstance()->registerConsole(consoleScreen);
@@ -222,7 +249,7 @@ void SchedulerTest(int numCore) {
 
 	// Create a separate thread that continuously generates processes based on BATCH_PROCESS_FREQ
     std::thread([]() {
-        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ, DELAYS_PER_EXEC);
+        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ, DELAYS_PER_EXEC, MIN_MEM_PER_PROC, MAX_MEM_PER_PROC);
     }).detach();
 
     system("cls");
