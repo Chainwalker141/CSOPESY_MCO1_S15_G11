@@ -8,6 +8,19 @@
 
 using namespace std;
 
+// struct for storing the page's physical location in bytes and if it is valid or not (in BS or not)
+struct PageInfo {
+	size_t startByte;
+	size_t endByte;
+	bool valid;
+
+	PageInfo()
+		: startByte(static_cast<size_t>(-1)),
+		endByte(static_cast<size_t>(-1)),
+		valid(false) {
+	}
+};
+
 class Console {
 public:
 	Console(string processName, int currentLine, int totalLine, string timestamp, size_t mem_size);
@@ -44,6 +57,11 @@ public:
 	void appendOutput(const std::string& msg);
 	vector<string> getOutputBuffer() const;
 
+	// PAGING
+	void initializePageTable(size_t totalMemory);
+	void setPageInfo(size_t index, size_t start, size_t end, bool isValid);
+	const std::vector<PageInfo> getPageTable();
+
 private:
 	string processName;
 	int currentLine;
@@ -51,6 +69,9 @@ private:
 	int totalLine;
 	string timestamp;
 	int coreID = -1;
+
+	// paging
+	std::vector<PageInfo> pageTable;
 	
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables

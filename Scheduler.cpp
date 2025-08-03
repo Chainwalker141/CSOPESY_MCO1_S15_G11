@@ -170,7 +170,8 @@ void Scheduler::start() {
                 else { // allocate memory
                     allocatedMemory = flatMemoryInstance->allocate(
                         currentProcess->getMemSize(),
-                        currentProcess->getProcessName()
+                        currentProcess->getProcessName(),
+                        currentProcess
                     );
                 }
                 

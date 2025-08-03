@@ -123,7 +123,7 @@ size_t ConsoleManager::generateRandBase2(size_t minVal, size_t maxVal) {
     return 1ULL << dist(gen);
 }
 
-void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC) {
+void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC, size_t MEM_PER_FRAME) {
     static int process_counter = 0;
     while (Scheduler::getInstance()->getIsSchedulerTestRunning()) {
         for (int i = 0; i < NUM_PROCESSES; i++) {
@@ -137,6 +137,7 @@ void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_
             
             shared_ptr<Console> processConsole = make_shared<Console>(
                 processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp(), memSize); // creates a process "P(N)" which has 10 lines and created at a certain time with a random memSize
+            processConsole->initializePageTable(MEM_PER_FRAME);
 
             ConsoleManager::getInstance()->generateCommands(processConsole, DELAYS_PER_EXEC);
             ConsoleManager::getInstance()->registerConsole(processConsole);
