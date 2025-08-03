@@ -31,6 +31,8 @@ public:
     static FlatMemoryAllocator* getInstance();
     int getTotalFrames();
     void logMemoryStateToFile(const std::string& filename);
+    void writePageToBackingStore(string processName);
+    void loadPageFromBackingStore(string processName);
     bool isProcessActive(string processName) const;
 
 private:

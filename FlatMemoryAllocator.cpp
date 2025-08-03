@@ -305,3 +305,53 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
     file << "-----start----- = 0\n\n";
     file.close();
 }
+
+void FlatMemoryAllocator::writePageToBackingStore(string processName) {
+    ofstream outfile("csopesy-backing-store.txt", ios::app); // append
+    if (!outfile.is_open()) {
+        cerr << "Error writing to backing store.\n";
+        return;
+    }
+
+    outfile << processName << "\n";
+    for (size_t i = 0; i < maximumSize; ++i) {
+        if (allocationMap[i] == processName) {
+            outfile << memory[i];
+        }
+    }
+    outfile << "\n\n"; // blank line to separate entries
+    outfile.close();
+}
+
+void FlatMemoryAllocator::loadPageFromBackingStore(string processName) {
+    ifstream infile("csopesy-backing-store.txt");
+    if (!infile.is_open()) {
+        cerr << "Error opening backing store.\n";
+        return;
+    }
+
+    string line, content;
+    bool found = false;
+    while (getline(infile, line)) {
+        if (line == processName) {
+            found = true;
+            string data;
+            while (getline(infile, data) && !data.empty()) {
+                content += data;
+            }
+            break;
+        }
+    }
+    infile.close();
+
+    if (found) {
+        void* ptr = allocate(content.size(), processName);
+        if (ptr != nullptr) {
+            for (size_t i = 0; i < content.size(); ++i) {
+                memory[static_cast<char*>(ptr) - &memory[0] + i] = content[i];
+            }
+        }
+    }
+}
+
+
