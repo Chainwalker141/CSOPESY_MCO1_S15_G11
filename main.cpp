@@ -247,7 +247,7 @@ void Screen(std::vector<std::string> args) {
                 while (std::getline(ss, instr, ';')) {
                     instr = trim(instr);
                     if (!instr.empty()) {
-                        std::cout << "[Parsed] " << instr << std::endl;  // Optional debug
+                        // std::cout << "[Parsed] " << instr << std::endl;  // Optional debug
                         instructions.push_back(instr);
                     }
                 }
@@ -271,7 +271,7 @@ void Screen(std::vector<std::string> args) {
                 ConsoleManager::getInstance()->registerConsole(consoleScreen);
                 Scheduler::getInstance()->assignProcess(consoleScreen);
 
-                cout << "screen created with custom instructions\n";
+                // cout << "screen created with custom instructions\n";
             }
         }
         else {
