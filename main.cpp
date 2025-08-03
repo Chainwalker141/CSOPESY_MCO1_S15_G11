@@ -112,6 +112,7 @@ void Initialize() {
 // helper function for checking if number is a power of 2 (for memory sizes)
 bool isPowerOfTwo(size_t n) {
     if (n == 0) return false;
+    if (n < 64 || n > 65536) return false;
 
     while (n % 2 == 0) {
         n /= 2;

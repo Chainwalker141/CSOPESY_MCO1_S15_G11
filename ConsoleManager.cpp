@@ -99,10 +99,23 @@ std::string ConsoleManager::getCurrentTimeStamp() {
 }
 
 size_t ConsoleManager::generateRandBase2(size_t minVal, size_t maxVal) {
+    // Clamp input range to [2^6, 2^16]
+    const size_t minClamp = 1ULL << 6;   // 64
+    const size_t maxClamp = 1ULL << 16;  // 65536
+
+    // Adjust minVal and maxVal to stay within the allowed range
+    minVal = std::max(minVal, minClamp);
+    maxVal = std::min(maxVal, maxClamp);
+
+    // Handle edge case where minVal > maxVal after clamping
+    if (minVal > maxVal)
+        return minClamp;
+
     int minExp = static_cast<int>(std::ceil(std::log2(minVal)));
     int maxExp = static_cast<int>(std::floor(std::log2(maxVal)));
 
-    if (minExp > maxExp) return 1ULL << minExp;
+    if (minExp > maxExp)
+        return 1ULL << minExp;
 
     static std::mt19937 gen(std::random_device{}());
     std::uniform_int_distribution<int> dist(minExp, maxExp);
