@@ -120,6 +120,15 @@ bool isPowerOfTwo(size_t n) {
     return n == 1;
 }
 
+// helper function for "screen -c" instructions 
+string trim(const string& str) {
+    const auto begin = str.find_first_not_of(" \t\r\n");
+    const auto end = str.find_last_not_of(" \t\r\n");
+    return (begin == string::npos || end == string::npos)
+        ? ""
+        : str.substr(begin, end - begin + 1);
+}
+
 void Screen(std::vector<std::string> args) {
     try {
         if (args.empty()) {
@@ -148,23 +157,30 @@ void Screen(std::vector<std::string> args) {
             }
         }
 
-        // From here on: only for -s or -r with <ProcessName>
-        if (args.size() != 3) {
-            throw std::runtime_error("Invalid Command Arguments \nCorrect Usage: screen -s|-r <ProcessName> <Memory Size>");
+        // Checker for -s or -r command
+        if (screenCommand == "-s") {
+            if (args.size() != 3) {
+                throw std::runtime_error("Invalid Command Arguments\nCorrect Usage: screen -s <ProcessName> <Memory Size>");
+            }
         }
-        
+        if (screenCommand == "-r") {
+            if (args.size() != 2) {
+                throw std::runtime_error("Invalid Command Arguments\nCorrect Usage: screen -r <ProcessName>");
+            }
+        }
 
         string processName = args[1];
-        size_t memorySize = stoull(args[2]);
-
-        // check if memory size is valid
-        if (!isPowerOfTwo(memorySize)) {
-            throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2");
-        }
 
         shared_ptr<Console> consoleScreen;
 
         if (screenCommand == "-s") {
+            size_t memorySize = stoull(args[2]);
+
+            // check if memory size is valid
+            if (!isPowerOfTwo(memorySize)) {
+                throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2");
+            }
+
             if (ConsoleManager::getInstance()->screenExists(processName)) {
                 cout << "Process " << processName << " already exists!\n";
             }
@@ -197,6 +213,65 @@ void Screen(std::vector<std::string> args) {
             else {
                 cout << "Process " << processName << " not found\n";
                 return;
+            }
+        }
+        else if (screenCommand == "-c") {
+            size_t memorySize = stoull(args[2]);
+
+            // check if memory size is valid
+            if (!isPowerOfTwo(memorySize)) {
+                throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2");
+            }
+
+            if (args.size() < 4) {
+                cout << "Invalid Command Arguments \nCorrect Usage: screen -c <ProcessName> <Memory Size> \"<Instructions>\"";
+            }
+            else if (ConsoleManager::getInstance()->screenExists(processName)) {
+                cout << "Process " << processName << " already exists!\n";
+            }
+            else {
+                std::string rawInstructionBlock;
+                for (size_t i = 3; i < args.size(); ++i) {
+                    if (!rawInstructionBlock.empty()) rawInstructionBlock += " ";
+                    rawInstructionBlock += args[i];
+                }
+
+                // Remove outer quotes, if any
+                if (!rawInstructionBlock.empty() && rawInstructionBlock.front() == '"') rawInstructionBlock.erase(0, 1);
+                if (!rawInstructionBlock.empty() && rawInstructionBlock.back() == '"') rawInstructionBlock.pop_back();
+
+                // Split by semicolon
+                std::vector<std::string> instructions;
+                std::stringstream ss(rawInstructionBlock);
+                std::string instr;
+                while (std::getline(ss, instr, ';')) {
+                    instr = trim(instr);
+                    if (!instr.empty()) {
+                        std::cout << "[Parsed] " << instr << std::endl;  // Optional debug
+                        instructions.push_back(instr);
+                    }
+                }
+
+                /*debug purposes
+                for (const auto& instr : instructions) {
+                    std::cout << "[debug] Parsed instruction: " << instr << "\n";
+                }*/
+
+                if (instructions.size() < 1 || instructions.size() > 50) {
+                    throw std::runtime_error("Invalid number of instructions (must be 1 to 50)");
+                }
+
+                // Create Console
+                consoleScreen = make_shared<Console>(
+                    processName, 0, instructions.size(),
+                    ConsoleManager::getInstance()->getCurrentTimeStamp(), memorySize);
+
+                // Pass the list of full instructions to ConsoleManager
+                ConsoleManager::getInstance()->generateUserCommands(consoleScreen, instructions, DELAYS_PER_EXEC);
+                ConsoleManager::getInstance()->registerConsole(consoleScreen);
+                Scheduler::getInstance()->assignProcess(consoleScreen);
+
+                cout << "screen created with custom instructions\n";
             }
         }
         else {
