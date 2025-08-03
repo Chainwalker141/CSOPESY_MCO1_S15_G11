@@ -308,6 +308,16 @@ std::shared_ptr<ICommand> ConsoleManager::parseInstruction(const std::string& li
         std::string varName;
         int value;
         iss >> varName >> value;
+
+        int currentVarCount = static_cast<int>(varTable->size());
+        if (currentVarCount >= 32) {
+            throw std::runtime_error("Variable limit exceeded: Only 32 variables allowed.");
+        }
+
+        if (value < 0 || value > 65535) {
+            throw std::runtime_error("Variable value out of range: Must be between 0 and 65535 (uint16_t).");
+        }
+
         return std::make_shared<DeclareCommand>(processName, varName, value, varTable, delays);
     }
 
@@ -407,8 +417,13 @@ void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, cons
             // std::cout << "[Parsed] " << line << std::endl; // debug
         }
         catch (const std::exception& e) {
-            std::cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << std::endl;
+            // std::cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << std::endl;
+            std::cerr << "Invalid Command";
         }
+    }
+
+    if (commandList.empty()) {
+        return;  // Don't set command list or proceed
     }
 
     process->setCommandList(commandList);
