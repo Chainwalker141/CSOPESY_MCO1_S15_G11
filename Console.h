@@ -51,7 +51,6 @@ private:
 	int totalLine;
 	string timestamp;
 	int coreID = -1;
-
 	
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables
