@@ -1,7 +1,6 @@
 #include "Scheduler.h"
 #include <stdio.h>
 #include <iostream>
-#include <mutex>
 #include "FlatMemoryAllocator.h"
 
 using namespace std;
@@ -130,7 +129,7 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
         currentProcess->runInstruction();
         //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
 
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // smaller number = faster processing time
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
     }
     // ENDOF FCFS
 

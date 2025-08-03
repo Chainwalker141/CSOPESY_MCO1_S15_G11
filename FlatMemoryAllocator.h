@@ -5,6 +5,13 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <mutex>
+
+// Struct to store process name and page number in each frame
+struct FrameInfo {
+    std::string processName;
+    size_t pageNumber;
+};
 
 class FlatMemoryAllocator : public IMemoryAllocator {
 public:
@@ -36,14 +43,17 @@ private:
     size_t maximumSize; // Max overall memory size
     size_t allocatedSize;
     std::vector<char> memory;        // Simulated memory ('.' = free, '#' = allocated)
-    std::unordered_map<size_t, string> allocationMap; // THE PAGE TABLE, size_t being the frame, string being the process' PAGE in that frame
+    std::unordered_map<size_t, string> allocationMap; // where each proc is stored in each individual byte in memory
+    std::unordered_map <size_t, FrameInfo> frameMap; // FRAME MAP IN RAM, key is frame num, value is the Frame Info which contains the procName and its page
     std::vector<size_t> freeFrameList; // TO DETERMINE WHICH FRAMES ARE UNOCCUPIED
     std::unordered_set<std::string> activeProcesses;
+
+    std::mutex frameListMutex;
 
     // Helper methods
     void initializeMemory(); // Initializes memory and allocation map
     bool canAllocateAt(size_t index, size_t size, string processName); // Checks if block can be allocated
-    void allocateAt(size_t index, size_t size, string processName);    // Marks block as allocated
+    void allocateAt(size_t index, size_t size, string processName, size_t pageNum);    // Marks block as allocated
     void deallocateAt(size_t index, string processName);   
     
 };
