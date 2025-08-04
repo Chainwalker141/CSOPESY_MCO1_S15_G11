@@ -68,6 +68,7 @@ void Scheduler::assignProcess(std::shared_ptr<Console> console) {
 
 void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, void* memoryPtr) {
     bool processDoneFlag = false;
+    bool processTerminatedFlag = false;
     
     // Log memory state to file after a quantum cycle
     FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
@@ -76,6 +77,12 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
 
     if (memoryPtr) {
         for (int i = 0; i < this->timeQuantum; i++) {
+
+            //initial check to know if proc has been prematurely terminated
+            if (currentProcess->getIsTerminated()) {
+                processTerminatedFlag = true;
+                break;
+            }
 
             //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
 
@@ -103,16 +110,22 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
     this->coresUsed--; // TODO: MAKE SETTER
     this->coresAvailable++;
 
-    if (processDoneFlag) {
-        //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
-		FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
-		flatMemoryInstance->deallocate(memoryPtr, currentProcess->getProcessName()); // Deallocate memory for the process
+    if (processTerminatedFlag) {
+        cout << "Process " << currentProcess->getProcessName() << "was prematurely Terminated" << endl;
+        FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
+        flatMemoryInstance->deallocate(memoryPtr, currentProcess->getProcessName()); // Deallocate memory for the process
     }
     else {
-		currentProcess->setCoreID(-1); // Reset Core ID for the process
-        assignProcess(currentProcess); // Put Process back to the queue. TODO: MAYBE USE A DIFFERENT FUNCTION ?
+        if (processDoneFlag) {
+            //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
+            FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
+            flatMemoryInstance->deallocate(memoryPtr, currentProcess->getProcessName()); // Deallocate memory for the process
+        }
+        else {
+            currentProcess->setCoreID(-1); // Reset Core ID for the process
+            assignProcess(currentProcess); // Put Process back to the queue.
+        }
     }
-    
 }
 
 void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreId) {
@@ -202,7 +215,7 @@ void Scheduler::start() {
                               << "Failed to allocate memory for process "
                               << currentProcess->getProcessName() << ". Requeuing..." << std::endl;*/
 
-                    // Optional: retry later by requeuing
+                    // retry later by requeuing
                     {
                         std::lock_guard<std::mutex> lock(queueMutex);
                         processQueue.push(currentProcess);

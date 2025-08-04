@@ -33,6 +33,10 @@ FlatMemoryAllocator* FlatMemoryAllocator::getInstance() {
     return flatMemoryAllocator;
 }
 
+const std::vector<size_t>& FlatMemoryAllocator::getFreeFrameList() const {
+    return freeFrameList;
+}
+
 int FlatMemoryAllocator::getTotalFrames() {
     return totalFrames;
 }
@@ -73,20 +77,6 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_p
 
     // Find the first available block that can accommodate the process
     size_t bytesToAllocate = memSize;
-
-    /*for (size_t i = 0; i < maximumSize; ++i) {
-        if (allocationMap[i] == processName) {
-            return &memory[i];
-        }
-        else {
-            if (canAllocateAt(i, memSize, processName)) {
-				cout << "Found available block at index: " << i << endl;
-                allocateAt(i, memSize, processName, pageToAllocate);
-                ++pageToAllocate;
-            }
-        }
-    }*/
-
     
     for (size_t pageToAllocate = 0; pageToAllocate < framesNeeded; pageToAllocate++) {
 
@@ -197,7 +187,7 @@ pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesT
         std::lock_guard<std::mutex> lock(frameListMutex);
 
         if (freeFrameList.empty()) {
-            std::cerr << "[OS Error] I lied haha, no frames available for: " << processName << " page: " << pageNum << endl;
+            // std::cerr << "[OS Error] I lied haha, no frames available for: " << processName << " page: " << pageNum << endl;
             return { -1, -1 }; // no allocation
         }
 
@@ -225,10 +215,14 @@ pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesT
 
     frameMap[frameIndex] = info;
 
+
+	// cout << "Allocated frame " << frameIndex << " with page: " << pageNum << " for process: " << processName << endl;
+
     // NOTE: we may have to add lock guard here
  /*   processPageTable[processName].insert(pageNum);*/
 
 	cout << "Allocated frame " << frameIndex << " with page: " << pageNum << " for process: " << processName << endl;
+
     //cout << "Free frames: " << freeFrameList.size() << endl;
     return { startByte, endByte };
 }
@@ -407,7 +401,7 @@ std::string FlatMemoryAllocator::evictOneProcessToBackingStore() {
 	std::lock_guard<std::mutex> lock(frameListMutex);
 
     if (frameQueue.empty()) {
-        std::cerr << "[OS Warning] No frames to evict — frameQueue is empty.\n";
+        std::cerr << "[OS Warning] No frames to evict Â— frameQueue is empty.\n";
         return "";
     }
 

@@ -46,6 +46,10 @@ void Console::setMemSize(size_t memSize) {
 	this->mem_size = memSize;
 }
 
+void Console::setIsTerminated(bool terminated) {
+	this->isTerminated = terminated;
+}
+
 string Console::getProcessName()
 {
 	return this->processName;
@@ -74,8 +78,22 @@ size_t Console::getMemSize() {
 	return this->mem_size;
 }
 
+bool Console::getIsTerminated() {
+	return this->isTerminated;
+}
+
 std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
 	return this->varTable;
+}
+
+size_t Console::getMemoryUsage() const {
+	size_t totalBytes = 0;
+	for (const auto& page : pageTable) {
+		if (page.valid) {
+			totalBytes += (page.endByte - page.startByte + 1);
+		}
+	}
+	return totalBytes;
 }
 
 void Console::appendOutput(const std::string& msg) {
