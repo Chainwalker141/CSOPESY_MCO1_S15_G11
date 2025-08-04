@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IMemoryAllocator.h"
+#include "VMStat.h"
 #include <vector>
 #include <string>
 #include <unordered_map>

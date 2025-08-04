@@ -10,6 +10,7 @@
 #include <fstream>
 #include <random>
 #include "FlatMemoryAllocator.h"
+#include "VMStat.h"
 
 // Set global variables and config
 bool running = true;
@@ -105,6 +106,7 @@ void Initialize() {
 	FlatMemoryAllocator::initialize(MAX_OVERALL_MEM, MEM_PER_FRAME); // initialize memory allocator
     Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER); // initialize scheduler
     Scheduler::getInstance()->start();
+    VMStat::initialize(MAX_OVERALL_MEM);
     cout << "total Frames: " << FlatMemoryAllocator::getInstance()->getTotalFrames();
     cout << "\n\nMOOD OS Initialized... \n\n";
 }
@@ -460,17 +462,7 @@ void Vmstat() {
     const auto& freeFrames = FlatMemoryAllocator::getInstance()->getFreeFrameList();
     size_t freeMemory = freeFrames.size() * MEM_PER_FRAME;
 
-    cout << "--------------------------------------" << endl;
-    cout << "vmstat" << endl;
-    cout << "--------------------------------------" << endl;
-    cout << "Total Memory: " << MAX_OVERALL_MEM <<endl;
-    cout << "Used Memory: " << (MAX_OVERALL_MEM - freeMemory) << endl;
-    cout << "Free Memory: " << freeMemory << endl;
-    cout << "Idle CPU ticks: " << endl;
-    cout << "Active CPU ticks: " << endl;
-    cout << "Total CPU ticks: " << endl;
-    cout << "Num Paged In: " << endl;
-    cout << "Num Paged Out: " << endl;
+    VMStat::getInstance()->print(freeMemory);
 }
 
 void Clear() {

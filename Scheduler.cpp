@@ -1,4 +1,5 @@
 #include "Scheduler.h"
+#include "VMStat.h"
 #include <stdio.h>
 #include <iostream>
 #include "FlatMemoryAllocator.h"
@@ -72,12 +73,13 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
     
     // Log memory state to file after a quantum cycle
     FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
+    VMStat* vmstat = VMStat::getInstance();
     std::string filename = "memory_stamp_" + std::to_string(quantumCycle) + ".txt";
     //flatMemoryInstance->logMemoryStateToFile(filename);
 
     if (allocatedMemory) {
         for (int i = 0; i < this->timeQuantum; i++) {
-
+            
             //initial check to know if proc has been prematurely terminated
             if (currentProcess->getIsTerminated()) {
                 processTerminatedFlag = true;
@@ -89,6 +91,7 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
             //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
 
             currentProcess->runInstruction();
+            vmstat->addActiveTicks();
             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
 
             // Process is done but timeQuantum has not been finished
@@ -153,7 +156,6 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
 
 void Scheduler::start() {
     isSchedulerRunning = true;
-
     for (int coreId = 0; coreId < numCores; ++coreId) {
         coreThreads.emplace_back([this, coreId]() {
             while (isSchedulerRunning) {
@@ -163,12 +165,18 @@ void Scheduler::start() {
                 // READY QUEUE
                 {
                     std::unique_lock<std::mutex> lock(queueMutex);
-                    queueCV.wait(lock, [this]() {
+                    // checks every 300ms for updates, if no updates, considered an idle tick
+                    queueCV.wait_for(lock, std::chrono::milliseconds(300), [this]() {
                         return !processQueue.empty() || !isSchedulerRunning;
-                    });
-
+                        });
                     if (!isSchedulerRunning && processQueue.empty())
                         break;
+
+                    // add an idle tick to vmstat
+                    if (processQueue.empty()) {
+                        VMStat::getInstance()->addIdleTicks();
+                        continue; // Skip to next loop iteration
+                    }
 
                     currentProcess = processQueue.front();
                     processQueue.pop();

@@ -425,8 +425,8 @@ void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, cons
     auto varTable = process->getVarTable();
     std::string processName = process->getProcessName();
 
-    int memSize = process->getMemSize();
-    int maxInstructions = (memSize - 64) / 2;
+    size_t memSize = process->getMemSize();
+    size_t maxInstructions = (memSize - 64) / 2;
     if (instructions.size() > maxInstructions) {
         throw std::runtime_error(
             "Invalid Command.\nInstruction count exceeds memory limit. Max allowed: " + std::to_string(maxInstructions)
