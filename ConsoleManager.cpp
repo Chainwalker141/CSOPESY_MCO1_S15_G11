@@ -123,7 +123,7 @@ size_t ConsoleManager::generateRandBase2(size_t minVal, size_t maxVal) {
     return 1ULL << dist(gen);
 }
 
-void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC) {
+void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC, size_t MEM_PER_FRAME) {
     static int process_counter = 0;
     while (Scheduler::getInstance()->getIsSchedulerTestRunning()) {
         for (int i = 0; i < NUM_PROCESSES; i++) {
@@ -137,6 +137,7 @@ void ConsoleManager::schedulerTest(int NUM_PROCESSES, int DELAYS_PER_EXEC, size_
             
             shared_ptr<Console> processConsole = make_shared<Console>(
                 processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp(), memSize); // creates a process "P(N)" which has 10 lines and created at a certain time with a random memSize
+            processConsole->initializePageTable(MEM_PER_FRAME);
 
             ConsoleManager::getInstance()->generateCommands(processConsole, DELAYS_PER_EXEC);
             ConsoleManager::getInstance()->registerConsole(processConsole);
@@ -154,6 +155,16 @@ int ConsoleManager::generateRandInt(int minIns, int maxIns) {
     static std::mt19937 gen(rd());    
     std::uniform_int_distribution<> distrib(minIns, maxIns);
     return distrib(gen);
+}
+
+// helper command, trim strings
+inline std::string cmTrim(const std::string& str) {
+    const char* whitespace = " \t\n\r\f\v";
+    size_t start = str.find_first_not_of(whitespace);
+    if (start == std::string::npos) return ""; // All whitespace
+
+    size_t end = str.find_last_not_of(whitespace);
+    return str.substr(start, end - start + 1);
 }
 
 void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELAYS_PER_EXEC) {
@@ -295,6 +306,148 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
         }
         }
     }
+    process->setCommandList(commandList);
+}
+
+// helper function for generateUserCommands
+std::shared_ptr<ICommand> ConsoleManager::parseInstruction(const std::string& line, std::shared_ptr<Console> process,int delays) {
+    std::istringstream iss(line);
+    std::string keyword;
+    iss >> keyword;
+
+    auto varTable = process->getVarTable();
+    std::string processName = process->getProcessName();
+
+    if (keyword == "DECLARE") {
+        std::string varName;
+        int value;
+        iss >> varName >> value;
+
+        int currentVarCount = static_cast<int>(varTable->size());
+        if (currentVarCount >= 32) {
+            throw std::runtime_error("Variable limit exceeded: Only 32 variables allowed.");
+        }
+
+        if (value < 0 || value > 65535) {
+            throw std::runtime_error("Variable value out of range: Must be between 0 and 65535 (uint16_t).");
+        }
+
+        return std::make_shared<DeclareCommand>(processName, varName, value, varTable, delays);
+    }
+
+    else if (keyword == "PRINT") {
+        std::string remainder;
+        std::getline(iss, remainder);
+        remainder = cmTrim(remainder);
+
+        if (remainder.front() == '(' && remainder.back() == ')') {
+            remainder = remainder.substr(1, remainder.size() - 2); // remove parentheses
+        }
+
+        // split on '+' and trim each
+        std::vector<std::string> parts;
+        std::stringstream ss(remainder);
+        std::string segment;
+        while (std::getline(ss, segment, '+')) {
+            parts.push_back(cmTrim(segment));
+        }
+
+        return std::make_shared<PrintCommand>(process->getProcessName(), parts, process->getVarTable(), delays);
+    }
+
+    else if (keyword == "ADD") {
+        std::string dest, op1, op2;
+        iss >> dest >> op1 >> op2;
+
+        // try to parse both operands as integers
+        bool isOp1Num = std::isdigit(op1[0]) || (op1[0] == '-' && std::isdigit(op1[1]));
+        bool isOp2Num = std::isdigit(op2[0]) || (op2[0] == '-' && std::isdigit(op2[1]));
+
+        if (isOp1Num && isOp2Num) {
+            return std::make_shared<AddCommand>(processName, dest, std::stoi(op1), std::stoi(op2), varTable, delays);
+        }
+        else if (!isOp1Num && isOp2Num) {
+            return std::make_shared<AddCommand>(processName, dest, op1, std::stoi(op2), varTable, delays);
+        }
+        else if (isOp1Num && !isOp2Num) {
+            return std::make_shared<AddCommand>(processName, dest, std::stoi(op1), op2, varTable, delays);
+        }
+        else {
+            return std::make_shared<AddCommand>(processName, dest, op1, op2, varTable, delays);
+        }
+    }
+
+    else if (keyword == "SUBTRACT") {
+        std::string dest, op1, op2;
+        iss >> dest >> op1 >> op2;
+
+        bool isOp1Num = std::isdigit(op1[0]) || (op1[0] == '-' && std::isdigit(op1[1]));
+        bool isOp2Num = std::isdigit(op2[0]) || (op2[0] == '-' && std::isdigit(op2[1]));
+
+        if (isOp1Num && isOp2Num) {
+            return std::make_shared<SubCommand>(processName, dest, std::stoi(op1), std::stoi(op2), varTable, delays);
+        }
+        else if (!isOp1Num && isOp2Num) {
+            return std::make_shared<SubCommand>(processName, dest, op1, std::stoi(op2), varTable, delays);
+        }
+        else if (isOp1Num && !isOp2Num) {
+            return std::make_shared<SubCommand>(processName, dest, std::stoi(op1), op2, varTable, delays);
+        }
+        else {
+            return std::make_shared<SubCommand>(processName, dest, op1, op2, varTable, delays);
+        }
+    }
+
+    else if (keyword == "SLEEP") {
+        int time;
+        iss >> time;
+        return std::make_shared<SleepCommand>(processName, "Sleeping for ", time, delays);
+    }
+
+    else if (keyword == "FOR") {
+        int start, end;
+        iss >> start >> end;
+
+        auto forCmd = std::make_shared<ForCommand>(processName, "forLoop", start, end, delays);
+        forCmd->addCommand(std::make_shared<AddCommand>(processName, "var3", 2, 2, varTable, delays));
+        return forCmd;
+    }
+
+    else {
+        throw std::runtime_error("Unknown command: " + keyword);
+    }
+}
+
+// for screen -c
+void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, const std::vector<std::string>& instructions, int DELAYS_PER_EXEC) {
+    std::queue<std::shared_ptr<ICommand>> commandList;
+    auto varTable = process->getVarTable();
+    std::string processName = process->getProcessName();
+
+    int memSize = process->getMemSize();
+    int maxInstructions = (memSize - 64) / 2;
+    if (instructions.size() > maxInstructions) {
+        throw std::runtime_error(
+            "Invalid Command.\nInstruction count exceeds memory limit. Max allowed: " + std::to_string(maxInstructions)
+        );
+    }
+
+    for (const auto& line : instructions) {
+        try {
+            std::shared_ptr<ICommand> cmd = parseInstruction(line, process, DELAYS_PER_EXEC);
+            commandList.push(cmd);
+            std::cout << "[Parsed] " << line << std::endl; // debug
+        }
+        catch (const std::exception& e) {
+            std::cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << std::endl;
+            std::cerr << "Invalid Command\n";
+        }
+    }
+
+    if (commandList.empty()) {
+        return;  // Don't set command list or proceed
+    }
+
     process->setCommandList(commandList);
 }
 

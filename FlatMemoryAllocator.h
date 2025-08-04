@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <mutex>
+#include "Console.h"
 
 // Struct to store process name and page number in each frame
 struct FrameInfo {
@@ -21,7 +22,7 @@ public:
     static void initialize(size_t maximumSize, size_t memPerFrame);
 
     // Core interface overrides
-    void* allocate(size_t size, string processName) override;
+    void* allocate(size_t size, string processName, shared_ptr<Console> Console) override;
     void deallocate(void* ptr, string processName) override;
     std::string visualizeMemory() override;
 
@@ -55,7 +56,7 @@ private:
     // Helper methods
     void initializeMemory(); // Initializes memory and allocation map
     bool canAllocateAt(size_t index, size_t size, string processName); // Checks if block can be allocated
-    void allocateAt(size_t index, size_t size, string processName, size_t pageNum);    // Marks block as allocated
+    pair<size_t, size_t> allocateAt(size_t index, size_t bytesToAllocate, string processName, size_t pageNum);    // Marks block as allocated
     void deallocateAt(size_t index, string processName);   
     
 };

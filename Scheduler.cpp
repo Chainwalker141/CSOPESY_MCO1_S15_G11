@@ -72,7 +72,7 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
     // Log memory state to file after a quantum cycle
     FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
     std::string filename = "memory_stamp_" + std::to_string(quantumCycle) + ".txt";
-    flatMemoryInstance->logMemoryStateToFile(filename);
+    //flatMemoryInstance->logMemoryStateToFile(filename);
 
     if (memoryPtr) {
         for (int i = 0; i < this->timeQuantum; i++) {
@@ -170,7 +170,8 @@ void Scheduler::start() {
                 else { // allocate memory
                     allocatedMemory = flatMemoryInstance->allocate(
                         currentProcess->getMemSize(),
-                        currentProcess->getProcessName()
+                        currentProcess->getProcessName(),
+                        currentProcess
                     );
                 }
                 

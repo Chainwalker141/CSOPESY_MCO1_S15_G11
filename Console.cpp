@@ -86,6 +86,26 @@ std::vector<std::string> Console::getOutputBuffer() const {
 	return printOutputs;
 }
 
+void Console::initializePageTable(size_t MEM_PER_FRAME) {
+	size_t pagesNeeded = (mem_size + MEM_PER_FRAME - 1) / MEM_PER_FRAME;
+	pageTable.resize(pagesNeeded);
+}
+
+void Console::setPageInfo(size_t index, size_t start, size_t end, bool isValid) {
+	pageTable[index].startByte = start;
+	pageTable[index].endByte = end;
+	pageTable[index].valid = isValid;
+	cout << "Updated pageTable[" << index << "] of "
+		<< processName
+		<< " startByte = " << pageTable[index].startByte << ", "
+		<< "endByte = " << pageTable[index].endByte << ", "
+		<< "valid = " << (pageTable[index].valid ? "true" : "false") << endl;
+}
+
+const vector<PageInfo> Console::getPageTable(){
+	return pageTable;
+}
+
 bool Console::isProcessDone(){
 	return this->currentLine >= this->totalLine;
 }

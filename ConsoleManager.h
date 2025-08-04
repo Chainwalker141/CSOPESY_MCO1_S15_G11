@@ -30,10 +30,12 @@ public:
 
 	// This is for generating dummy processes
 	size_t generateRandBase2(size_t minVal, size_t maxVal);
-	void schedulerTest(int BATCH_PROCESS_FREQ, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC);
+	void schedulerTest(int BATCH_PROCESS_FREQ, int DELAYS_PER_EXEC, size_t MIN_MEM_PER_PROC, size_t MAX_MEM_PER_PROC, size_t MEM_PER_FRAME);
 
 	// CommandList Generation
 	void generateCommands(std::shared_ptr<Console>, int DELAYS_PER_EXEC);
+	std::shared_ptr<ICommand> parseInstruction(const std::string& line, std::shared_ptr<Console> process, int delays);
+	void generateUserCommands(std::shared_ptr<Console> process, const vector<string>& instructionLines, int DELAYS_PER_EXEC);
 
 private:
 	static ConsoleManager* consoleManager;
