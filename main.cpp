@@ -409,7 +409,35 @@ void ProcessSmi(size_t MAX_OVERALL_MEM, size_t MEM_PER_FRAME) {
 
     const auto& freeFrames = FlatMemoryAllocator::getInstance()->getFreeFrameList();
     size_t freeMemory = freeFrames.size() * MEM_PER_FRAME;
-    float memUtilization = (((float)MAX_OVERALL_MEM - (float)freeMemory) / (float)MAX_OVERALL_MEM) * 100;
+
+    std::unordered_set<size_t> globalUsedFrames;
+    std::vector<std::pair<std::string, size_t>> processMemories;
+
+    for (const auto& [_, screenPtr] : screenMap) {
+        if (!screenPtr) continue;
+        if (screenPtr->getCurrentLine() >= screenPtr->getTotalLine()) continue;
+
+        const auto& pageTable = screenPtr->getPageTable();
+
+        std::unordered_set<size_t> localFrames;
+        for (const auto& page : pageTable) {
+            if (!page.valid) continue;
+
+            // Frame index = startByte / MEM_PER_FRAME
+            size_t frameIndex = page.startByte / MEM_PER_FRAME;
+
+            localFrames.insert(frameIndex);
+            globalUsedFrames.insert(frameIndex);
+        }
+
+        size_t memUsed = localFrames.size() * MEM_PER_FRAME;
+        if (memUsed > 0) {
+            processMemories.emplace_back(screenPtr->getProcessName(), memUsed);
+        }
+    }
+
+    size_t totalUsedMemory = globalUsedFrames.size() * MEM_PER_FRAME;
+    float memUtilization = ((float)totalUsedMemory / (float)MAX_OVERALL_MEM) * 100;
 
     cout << "--------------------------------------" << endl;
     cout << "| PROCESS-SMI V 1.0  DRIVER VER: 1.0 |" << endl;
@@ -422,13 +450,22 @@ void ProcessSmi(size_t MAX_OVERALL_MEM, size_t MEM_PER_FRAME) {
     cout << "Running Processes and Memory Usage" << endl;
     cout << "--------------------------------------" << endl;
 
-    for (const auto& [processName, screenPtr] : screenMap) {
+   /* for (const auto& [processName, screenPtr] : screenMap) {
         if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
             size_t memUsed = screenPtr->getMemoryUsage();
+            for (const auto& page : pageTable) {
+                if (page.valid) {
+                    totalBytesUsed += (page.endByte - page.startByte + 1);
+                }
+            }
             if (memUsed > 0) {
                 cout << "Process: " << processName << " " << memUsed << " bytes" << endl;
             }
         }
+    }*/
+
+    for(const auto& [name, memUsed] : processMemories) {
+        cout << "Name: " << name << " | Memory: " << memUsed << " bytes" << endl;
     }
     cout << "--------------------------------------" << endl;
 }

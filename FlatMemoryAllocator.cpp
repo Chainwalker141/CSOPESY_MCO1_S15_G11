@@ -169,7 +169,7 @@ pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesT
         std::lock_guard<std::mutex> lock(frameListMutex);
 
         if (freeFrameList.empty()) {
-            std::cerr << "[OS Error] I lied haha, no frames available for: " << processName << " page: " << pageNum << endl;
+            // std::cerr << "[OS Error] I lied haha, no frames available for: " << processName << " page: " << pageNum << endl;
             return { -1, -1 }; // no allocation
         }
 
@@ -196,7 +196,7 @@ pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesT
 
     frameMap[frameIndex] = info;
 
-	cout << "Allocated frame " << frameIndex << " with page: " << pageNum << " for process: " << processName << endl;
+	// cout << "Allocated frame " << frameIndex << " with page: " << pageNum << " for process: " << processName << endl;
     //cout << "Free frames: " << freeFrameList.size() << endl;
     return { startByte, endByte };
 }
