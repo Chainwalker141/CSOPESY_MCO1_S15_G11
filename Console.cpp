@@ -87,11 +87,17 @@ std::vector<std::string> Console::getOutputBuffer() const {
 }
 
 void Console::initializePageTable(size_t MEM_PER_FRAME) {
+	this->memPerFrame = MEM_PER_FRAME; 
 	size_t pagesNeeded = (mem_size + MEM_PER_FRAME - 1) / MEM_PER_FRAME;
 	pageTable.resize(pagesNeeded);
 }
 
-bool Console::isPageLoaded(int index) { 
+bool Console::isPageLoaded(int index) {
+	if (index > pageTable.size()) {
+		cout << "INDEX OUT OF BOUNDS: " << index;
+		return -1;
+	}
+	cout << "size: " << pageTable.size() << " index: " << index;
 	return pageTable[index].valid;
 }
 
@@ -99,11 +105,18 @@ int Console::getCurrentPage() {
 	// Each instruction is 2 bytes + 64 allotted for symbol table
 	int currMemSize = (currentLine * 2 + 64);
 
-	if (currMemSize > mem_size) { // CurrentLine goes over allocated memory
+	if (currMemSize >= mem_size) { // CurrentLine goes over allocated memory
 		return -1; 
 	}
 
-	return currMemSize / pageTable.size();
+	//cout << "currMemSize: " << currMemSize << " pageTable.size(): " << memPerFrame << "|| " << currMemSize / memPerFrame;
+	return (currMemSize-1) / memPerFrame;
+}
+
+
+size_t Console::getSymbolTablePages() {
+	const size_t SYMBOL_TABLE_SIZE = 64;
+	return (SYMBOL_TABLE_SIZE + memPerFrame - 1) / memPerFrame;
 }
 
 void Console::setPageInfo(size_t index, size_t start, size_t end, bool isValid) {
@@ -129,7 +142,7 @@ void Console::runInstruction() {
 	// Check if current instruction is loaded onto memory
 	int currPage = getCurrentPage();
 	if (currPage < 0) {
-		cout << "Process out of memory";
+		cout << "Process out of memory; Current Instruction: " << currentLine;
 		return;			// TODO: Perform Error handling 
 	}
 

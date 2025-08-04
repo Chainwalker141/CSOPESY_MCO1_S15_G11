@@ -17,6 +17,8 @@ public:
 		SUBTRACT, 
 		SLEEP, 
 		FOR,
+		WRITE, 
+		READ
 	};
 		
 	ICommand(string processName, ICommand::CommandType commandType, int delay);

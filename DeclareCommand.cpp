@@ -21,6 +21,15 @@ void DeclareCommand::execute() {
 		auto console = screen->second;
 		auto keyVal = varTable->find(varName);
 
+		// Check if symbol table pages are loaded 
+		int pages = console->getSymbolTablePages();
+
+		for (int i = 0; i < pages; i++) {
+			if (!console->isPageLoaded(i)) {
+				// LOAD PAGE
+			}
+		}
+
 		// Check existence in table
 		if (keyVal != varTable->end()) { // Exists: replace
 			keyVal->second = value;

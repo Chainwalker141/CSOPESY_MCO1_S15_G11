@@ -62,6 +62,7 @@ public:
 	void setPageInfo(size_t index, size_t start, size_t end, bool isValid);
 	const std::vector<PageInfo> getPageTable();
 	int getCurrentPage(); 
+	size_t getSymbolTablePages();
 	bool isPageLoaded(int index);
 
 private:
@@ -74,7 +75,8 @@ private:
 
 	// paging
 	std::vector<PageInfo> pageTable;
-	
+	size_t memPerFrame;
+
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables, both <varName, value> and <address, value> 
 	std::queue<std::shared_ptr<ICommand>> commandList;
