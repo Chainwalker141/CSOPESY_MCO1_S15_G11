@@ -32,6 +32,7 @@ public:
 	void setTimestamp(string timestamp);
 	void setCoreID(int coreID);
 	void setMemSize(size_t memSize);
+	void setIsTerminated(bool terminated);
 
 	string getProcessName();
 	int getCurrentLine();
@@ -39,6 +40,7 @@ public:
 	string getTimestamp();
 	int getCoreID();
 	size_t getMemSize();
+	bool getIsTerminated();
 
 	string getContents();
 	bool isProcessDone();
@@ -72,6 +74,7 @@ private:
 
 	// paging
 	std::vector<PageInfo> pageTable;
+	bool isTerminated = false;
 	
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables

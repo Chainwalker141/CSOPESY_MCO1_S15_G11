@@ -46,6 +46,10 @@ void Console::setMemSize(size_t memSize) {
 	this->mem_size = memSize;
 }
 
+void Console::setIsTerminated(bool terminated) {
+	this->isTerminated = terminated;
+}
+
 string Console::getProcessName()
 {
 	return this->processName;
@@ -72,6 +76,10 @@ int Console::getCoreID() {
 
 size_t Console::getMemSize() {
 	return this->mem_size;
+}
+
+bool Console::getIsTerminated() {
+	return this->isTerminated;
 }
 
 std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
