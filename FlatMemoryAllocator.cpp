@@ -71,20 +71,6 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_p
 
     // Find the first available block that can accommodate the process
     size_t bytesToAllocate = memSize;
-
-    /*for (size_t i = 0; i < maximumSize; ++i) {
-        if (allocationMap[i] == processName) {
-            return &memory[i];
-        }
-        else {
-            if (canAllocateAt(i, memSize, processName)) {
-				cout << "Found available block at index: " << i << endl;
-                allocateAt(i, memSize, processName, pageToAllocate);
-                ++pageToAllocate;
-            }
-        }
-    }*/
-
     
     for (size_t pageToAllocate = 0; pageToAllocate < framesNeeded; pageToAllocate++) {
 

@@ -123,7 +123,7 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
         }
         else {
             currentProcess->setCoreID(-1); // Reset Core ID for the process
-            assignProcess(currentProcess); // Put Process back to the queue. TODO: MAYBE USE A DIFFERENT FUNCTION ?
+            assignProcess(currentProcess); // Put Process back to the queue.
         }
     }
 }
@@ -195,7 +195,7 @@ void Scheduler::start() {
                               << "Failed to allocate memory for process "
                               << currentProcess->getProcessName() << ". Requeuing..." << std::endl;*/
 
-                    // Optional: retry later by requeuing
+                    // retry later by requeuing
                     {
                         std::lock_guard<std::mutex> lock(queueMutex);
                         processQueue.push(currentProcess);
