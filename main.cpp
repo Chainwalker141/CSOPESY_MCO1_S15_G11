@@ -269,6 +269,7 @@ void Screen(std::vector<std::string> args) {
                 consoleScreen = make_shared<Console>(
                     processName, 0, instructions.size(),
                     ConsoleManager::getInstance()->getCurrentTimeStamp(), memorySize);
+                consoleScreen->initializePageTable(MEM_PER_FRAME);
 
                 // Pass the list of full instructions to ConsoleManager
                 ConsoleManager::getInstance()->generateUserCommands(consoleScreen, instructions, DELAYS_PER_EXEC);
