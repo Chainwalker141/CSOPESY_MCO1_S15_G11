@@ -22,13 +22,12 @@ public:
     static void initialize(size_t maximumSize, size_t memPerFrame);
 
     // Core interface overrides
-    void* allocate(size_t size, string processName, shared_ptr<Console> Console) override;
-    void deallocate(void* ptr, string processName) override;
+    bool allocate(size_t size, string processName, shared_ptr<Console> Console) override;
+    void deallocate(string processName) override;
     void deallocateIndividualFrame(size_t frameIndex);
-    void deallocateIndividualFrame(string processName);
     std::string visualizeMemory() override;
 
-    void* getPointerToProcess(string processName);
+    bool getPointerToProcess(string processName);
 
     // Getters
     static FlatMemoryAllocator* getInstance();
