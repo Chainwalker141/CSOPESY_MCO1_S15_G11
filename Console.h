@@ -61,6 +61,8 @@ public:
 	void initializePageTable(size_t totalMemory);
 	void setPageInfo(size_t index, size_t start, size_t end, bool isValid);
 	const std::vector<PageInfo> getPageTable();
+	int getCurrentPage(); 
+	bool isPageLoaded(int index);
 
 private:
 	string processName;
@@ -74,7 +76,7 @@ private:
 	std::vector<PageInfo> pageTable;
 	
 	// COMMANDLIST IMPLEMENTATION
-	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables
+	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables, both <varName, value> and <address, value> 
 	std::queue<std::shared_ptr<ICommand>> commandList;
 	vector<string> printOutputs;
 };

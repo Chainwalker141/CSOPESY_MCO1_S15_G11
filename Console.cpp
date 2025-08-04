@@ -91,6 +91,21 @@ void Console::initializePageTable(size_t MEM_PER_FRAME) {
 	pageTable.resize(pagesNeeded);
 }
 
+bool Console::isPageLoaded(int index) { 
+	return pageTable[index].valid;
+}
+
+int Console::getCurrentPage() {
+	// Each instruction is 2 bytes + 64 allotted for symbol table
+	int currMemSize = (currentLine * 2 + 64);
+
+	if (currMemSize > mem_size) { // CurrentLine goes over allocated memory
+		return -1; 
+	}
+
+	return currMemSize / pageTable.size();
+}
+
 void Console::setPageInfo(size_t index, size_t start, size_t end, bool isValid) {
 	pageTable[index].startByte = start;
 	pageTable[index].endByte = end;
@@ -111,6 +126,18 @@ bool Console::isProcessDone(){
 }
 
 void Console::runInstruction() {
+	// Check if current instruction is loaded onto memory
+	int currPage = getCurrentPage();
+	if (currPage < 0) {
+		cout << "Process out of memory";
+		return;			// TODO: Perform Error handling 
+	}
+
+	if (!isPageLoaded(currPage)) {
+		cout << "Page not loaded";
+		return;			// TODO: Perform page loading mechanism
+	}
+
 	this->commandList.front()->execute(); // Execute Current Line
 	commandList.pop(); // Pop out of list 
 	this->setCurrentLine(this->getCurrentLine() + 1); // Increment current instruction line
