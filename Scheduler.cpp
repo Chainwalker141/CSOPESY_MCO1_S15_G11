@@ -173,6 +173,26 @@ void Scheduler::start() {
                         currentProcess->getProcessName(),
                         currentProcess
                     );
+
+                    // Backing store operation
+                    if (!allocatedMemory) {
+						// If allocation fails, try to evict a process to backing store
+                        std::string evictedProcess = flatMemoryInstance->evictOneProcessToBackingStore();
+
+           /*             cout << "[Core " << coreId << "] "
+							<< "Evicted process: " << evictedProcess << " to backing store." << std::endl;*/
+                        if (!evictedProcess.empty()) {
+                            // Load from backing store
+							/*flatMemoryInstance->loadPageFromBackingStore(evictedProcess, currentProcess);*/
+
+                            // Try allocating again after eviction
+                            /*allocatedMemory = flatMemoryInstance->allocate(
+                                currentProcess->getMemSize(),
+                                currentProcess->getProcessName(),
+                                currentProcess
+                            );*/
+						}
+                    }
                 }
                 
 

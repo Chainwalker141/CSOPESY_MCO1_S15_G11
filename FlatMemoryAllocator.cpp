@@ -60,6 +60,8 @@ bool FlatMemoryAllocator::isProcessActive(string processName) const {
 
 // Allocate memory block
 void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_ptr<Console> Console) {
+	cout << "Allocating memory for process: " << processName << " with size: " << memSize << endl;
+
     // determine how many frames are needed
     size_t framesNeeded = (memSize + memPerFrame - 1) / memPerFrame;
 
@@ -123,6 +125,29 @@ void FlatMemoryAllocator::deallocate(void* ptr, string processName) {
     //    activeProcesses.erase(processName);
 }
 
+// Deallocate one frame
+void FlatMemoryAllocator::deallocateIndividualFrame(size_t frameIndex) {
+    //lock guard
+    std::lock_guard<std::mutex> lock(frameListMutex);
+
+    if (frameQueue.empty()) {
+        std::cerr << "[OS Error] Frame queue is empty!\n";
+        return;
+    }
+
+    if (frameMap.find(frameIndex) == frameMap.end()) {
+        std::cerr << "[OS Error] Tried to deallocate a non-existent frame: " << frameIndex << "\n";
+        return;
+    }
+
+    std::string processName = frameMap[frameIndex].processName;  // save before erase
+
+    freeFrameList.push_back(frameIndex);
+    frameMap.erase(frameIndex);
+
+    std::cout << "[Deallocate] Frame " << frameIndex << " from process " << processName << " deallocated.\n";
+}
+
 // Visualize memory
 std::string FlatMemoryAllocator::visualizeMemory() {
     return std::string(memory.begin(), memory.end());
@@ -178,6 +203,7 @@ pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesT
 
         frameIndex = freeFrameList.back();
         freeFrameList.pop_back();
+        frameQueue.push(frameIndex); // Add frame to queue for tracking
     }
 
   //  for (size_t i = 0; i < memSize; ++i) {
@@ -199,6 +225,9 @@ pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesT
 
     frameMap[frameIndex] = info;
 
+    // NOTE: we may have to add lock guard here
+ /*   processPageTable[processName].insert(pageNum);*/
+
 	cout << "Allocated frame " << frameIndex << " with page: " << pageNum << " for process: " << processName << endl;
     //cout << "Free frames: " << freeFrameList.size() << endl;
     return { startByte, endByte };
@@ -215,6 +244,8 @@ void FlatMemoryAllocator::deallocateAt(size_t index, string processName) {
         ++index;
     }*/
     //cout << "index: " << index-index << " is: " << memory[index-index] << " allocation map: " << allocationMap[index - index] << endl;
+    //lock guard
+	std::lock_guard<std::mutex> lock(frameListMutex);
 
     std::vector<size_t> framesToFree; // to determine which frames are to be freed up
 
@@ -326,24 +357,22 @@ void FlatMemoryAllocator::logMemoryStateToFile(const std::string& filename) {
     file.close();
 }
 
-void FlatMemoryAllocator::writePageToBackingStore(string processName) {
-    ofstream outfile("csopesy-backing-store.txt", ios::app); // append
+void FlatMemoryAllocator::writePageToBackingStore(FrameInfo victimFrame) {
+    std::ofstream outfile("csopesy-backing-store.txt", std::ios::app); // append
     if (!outfile.is_open()) {
-        cerr << "Error writing to backing store.\n";
+        std::cerr << "Error writing to backing store.\n";
         return;
     }
 
-    outfile << processName << "\n";
-    for (size_t i = 0; i < maximumSize; ++i) {
-        if (allocationMap[i] == processName) {
-            outfile << memory[i];
-        }
-    }
-    outfile << "\n\n"; // blank line to separate entries
+    outfile << "PROCESS " << victimFrame.processName << "\n";
+	outfile << "PAGE " << victimFrame.pageNumber << "\n";
+
+
+    //outfile << "ENDPROCESS\n\n"; // Clear separation for parsing later
     outfile.close();
 }
 
-void FlatMemoryAllocator::loadPageFromBackingStore(string processName) {
+void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shared_ptr<Console> console) {
     ifstream infile("csopesy-backing-store.txt");
     if (!infile.is_open()) {
         cerr << "Error opening backing store.\n";
@@ -365,13 +394,42 @@ void FlatMemoryAllocator::loadPageFromBackingStore(string processName) {
     infile.close();
 
     if (found) {
-        void* ptr = allocate(content.size(), processName);
+        void* ptr = allocate(content.size(), processName, console);
         if (ptr != nullptr) {
             for (size_t i = 0; i < content.size(); ++i) {
                 memory[static_cast<char*>(ptr) - &memory[0] + i] = content[i];
             }
         }
     }
+}
+
+std::string FlatMemoryAllocator::evictOneProcessToBackingStore() {
+	std::lock_guard<std::mutex> lock(frameListMutex);
+
+    if (frameQueue.empty()) {
+        std::cerr << "[OS Warning] No frames to evict — frameQueue is empty.\n";
+        return "";
+    }
+
+    // Evict the first process in the set (FIFO style eviction)
+    size_t victimFrameIndex = frameQueue.front();
+    frameQueue.pop();
+
+    auto it = frameMap.find(victimFrameIndex);
+    if (it == frameMap.end()) {
+        std::cerr << "[OS Warning] Frame " << victimFrameIndex << " not found in frameMap.\n";
+        return "";
+    }
+
+    FrameInfo victimInfo = it->second;
+    std::string victimProcess = it->second.processName;
+
+	cout << "Evicting Frame: " << victimFrameIndex << " to backing store." << endl;
+	writePageToBackingStore(victimInfo);
+
+	deallocateIndividualFrame(victimFrameIndex); // Deallocate the first frame of the victim process
+
+	return victimProcess; // Return the name of the evicted process
 }
 
 
