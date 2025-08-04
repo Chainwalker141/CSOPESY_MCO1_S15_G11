@@ -398,6 +398,41 @@ void ReportUtil() {
     }
 }
 
+// actual process-smi command
+void ProcessSmi(size_t MAX_OVERALL_MEM, size_t MEM_PER_FRAME) {
+    unordered_map<string, shared_ptr<Console>> screenMap = ConsoleManager::getInstance()->getScreenMap();
+    Scheduler* scheduler = Scheduler::getInstance();
+
+    int coresUsed = scheduler->getCoresUsed(); 
+    int coresAvailable = scheduler->getCoresAvailable();
+    float cpuUtilization = (float)coresUsed / (coresUsed + coresAvailable) * 100;
+
+    const auto& freeFrames = FlatMemoryAllocator::getInstance()->getFreeFrameList();
+    size_t freeMemory = freeFrames.size() * MEM_PER_FRAME;
+    float memUtilization = (((float)MAX_OVERALL_MEM - (float)freeMemory) / (float)MAX_OVERALL_MEM) * 100;
+
+    cout << "--------------------------------------" << endl;
+    cout << "| PROCESS-SMI V 1.0  DRIVER VER: 1.0 |" << endl;
+    cout << "--------------------------------------" << endl;
+    cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
+    cout << "Memory Utilization: " << memUtilization << "%" << endl;
+    cout << "Memory Usage: " << (MAX_OVERALL_MEM - freeMemory) << " / " << MAX_OVERALL_MEM << endl;
+
+    cout << "\n======================================" << endl;
+    cout << "Running Processes and Memory Usage" << endl;
+    cout << "--------------------------------------" << endl;
+
+    for (const auto& [processName, screenPtr] : screenMap) {
+        if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
+            size_t memUsed = screenPtr->getMemoryUsage();
+            if (memUsed > 0) {
+                cout << "Process: " << processName << " " << memUsed << " bytes" << endl;
+            }
+        }
+    }
+    cout << "--------------------------------------" << endl;
+}
+
 void Clear() {
     system("CLS");
 }
@@ -461,6 +496,10 @@ int main() {
         else if (command == "report-util" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
             ReportUtil();
+        }
+        else if (command == "process-smi" && ConsoleManager::getInstance()->getInitialize()) {
+            system("cls");
+            ProcessSmi(MAX_OVERALL_MEM, MEM_PER_FRAME);
         }
         else if (command == "clear" && ConsoleManager::getInstance()->getInitialize()) {
             Clear();

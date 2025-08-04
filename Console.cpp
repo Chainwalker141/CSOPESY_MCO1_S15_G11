@@ -78,6 +78,16 @@ std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
 	return this->varTable;
 }
 
+size_t Console::getMemoryUsage() const {
+	size_t totalBytes = 0;
+	for (const PageInfo& page : pageTable) {
+		if (page.valid && page.endByte >= page.startByte) {
+			totalBytes += (page.endByte - page.startByte + 1);
+		}
+	}
+	return totalBytes;
+}
+
 void Console::appendOutput(const std::string& msg) {
 	printOutputs.push_back(msg);
 }

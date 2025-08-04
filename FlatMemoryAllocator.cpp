@@ -33,6 +33,10 @@ FlatMemoryAllocator* FlatMemoryAllocator::getInstance() {
     return flatMemoryAllocator;
 }
 
+const std::vector<size_t>& FlatMemoryAllocator::getFreeFrameList() const {
+    return freeFrameList;
+}
+
 int FlatMemoryAllocator::getTotalFrames() {
     return totalFrames;
 }
