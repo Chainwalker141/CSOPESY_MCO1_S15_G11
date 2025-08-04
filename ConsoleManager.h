@@ -34,6 +34,8 @@ public:
 
 	// CommandList Generation
 	void generateCommands(std::shared_ptr<Console>, int DELAYS_PER_EXEC);
+	std::shared_ptr<ICommand> parseInstruction(const std::string& line, std::shared_ptr<Console> process, int delays);
+	void generateUserCommands(std::shared_ptr<Console> process, const vector<string>& instructionLines, int DELAYS_PER_EXEC);
 
 private:
 	static ConsoleManager* consoleManager;
