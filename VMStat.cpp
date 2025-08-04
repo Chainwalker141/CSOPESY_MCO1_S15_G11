@@ -51,9 +51,9 @@ VMStat* VMStat::getInstance() {
 
 // Print stats
 void VMStat::print(size_t freeMemory) {
-    cout << "========================" << endl;
-    cout << "vmstat details" << endl;
-    cout << "========================" << endl;
+    cout << "================================================" << endl;
+    cout << "                 vmstat details                 " << endl;
+    cout << "================================================" << endl;
     cout << "Total Memory:     | " << totalMemory << " bytes" << endl;
     cout << "Used Memory:      | " << usedMemory << " bytes" << endl;
     cout << "Free Memory:      | " << freeMemory << " bytes" << endl;
@@ -62,5 +62,5 @@ void VMStat::print(size_t freeMemory) {
     cout << "Total CPU Ticks:  | " << getTotalTicks() << endl;
     cout << "Pages Paged In:   | " << pagedIn << endl;
     cout << "Pages Paged Out:  | " << pagedOut << endl;
-    cout << "========================" << endl;
+    cout << "================================================" << endl;
 }
