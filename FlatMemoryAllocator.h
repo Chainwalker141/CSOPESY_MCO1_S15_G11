@@ -30,6 +30,7 @@ public:
 
     // Getters
     static FlatMemoryAllocator* getInstance();
+    const std::vector<size_t>& getFreeFrameList() const;
     int getTotalFrames();
     void logMemoryStateToFile(const std::string& filename);
     bool isProcessActive(string processName) const;

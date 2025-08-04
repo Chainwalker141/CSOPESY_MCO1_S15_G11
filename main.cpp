@@ -398,6 +398,78 @@ void ReportUtil() {
     }
 }
 
+// actual process-smi command
+void ProcessSmi(size_t MAX_OVERALL_MEM, size_t MEM_PER_FRAME) {
+    unordered_map<string, shared_ptr<Console>> screenMap = ConsoleManager::getInstance()->getScreenMap();
+    Scheduler* scheduler = Scheduler::getInstance();
+
+    int coresUsed = scheduler->getCoresUsed(); 
+    int coresAvailable = scheduler->getCoresAvailable();
+    float cpuUtilization = (float)coresUsed / (coresUsed + coresAvailable) * 100;
+
+    const auto& freeFrames = FlatMemoryAllocator::getInstance()->getFreeFrameList();
+    size_t freeMemory = freeFrames.size() * MEM_PER_FRAME;
+
+    std::unordered_set<size_t> globalUsedFrames;
+    std::vector<std::pair<std::string, size_t>> processMemories;
+
+    for (const auto& [_, screenPtr] : screenMap) {
+        if (!screenPtr) continue;
+        if (screenPtr->getCurrentLine() >= screenPtr->getTotalLine()) continue;
+
+        const auto& pageTable = screenPtr->getPageTable();
+
+        std::unordered_set<size_t> localFrames;
+        for (const auto& page : pageTable) {
+            if (!page.valid) continue;
+
+            // Frame index = startByte / MEM_PER_FRAME
+            size_t frameIndex = page.startByte / MEM_PER_FRAME;
+
+            localFrames.insert(frameIndex);
+            globalUsedFrames.insert(frameIndex);
+        }
+
+        size_t memUsed = localFrames.size() * MEM_PER_FRAME;
+        if (memUsed > 0) {
+            processMemories.emplace_back(screenPtr->getProcessName(), memUsed);
+        }
+    }
+
+    size_t totalUsedMemory = globalUsedFrames.size() * MEM_PER_FRAME;
+    float memUtilization = ((float)totalUsedMemory / (float)MAX_OVERALL_MEM) * 100;
+
+    cout << "--------------------------------------" << endl;
+    cout << "| PROCESS-SMI V 1.0  DRIVER VER: 1.0 |" << endl;
+    cout << "--------------------------------------" << endl;
+    cout << "CPU Utilization: " << cpuUtilization << "%" << endl;
+    cout << "Memory Utilization: " << memUtilization << "%" << endl;
+    cout << "Memory Usage: " << (MAX_OVERALL_MEM - freeMemory) << " / " << MAX_OVERALL_MEM << endl;
+
+    cout << "\n======================================" << endl;
+    cout << "Running Processes and Memory Usage" << endl;
+    cout << "--------------------------------------" << endl;
+
+   /* for (const auto& [processName, screenPtr] : screenMap) {
+        if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
+            size_t memUsed = screenPtr->getMemoryUsage();
+            for (const auto& page : pageTable) {
+                if (page.valid) {
+                    totalBytesUsed += (page.endByte - page.startByte + 1);
+                }
+            }
+            if (memUsed > 0) {
+                cout << "Process: " << processName << " " << memUsed << " bytes" << endl;
+            }
+        }
+    }*/
+
+    for(const auto& [name, memUsed] : processMemories) {
+        cout << "Name: " << name << " | Memory: " << memUsed << " bytes" << endl;
+    }
+    cout << "--------------------------------------" << endl;
+}
+
 void Clear() {
     system("CLS");
 }
@@ -461,6 +533,10 @@ int main() {
         else if (command == "report-util" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
             ReportUtil();
+        }
+        else if (command == "process-smi" && ConsoleManager::getInstance()->getInitialize()) {
+            system("cls");
+            ProcessSmi(MAX_OVERALL_MEM, MEM_PER_FRAME);
         }
         else if (command == "clear" && ConsoleManager::getInstance()->getInitialize()) {
             Clear();

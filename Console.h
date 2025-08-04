@@ -45,7 +45,9 @@ public:
 	string getContents();
 	bool isProcessDone();
 
-	shared_ptr<std::unordered_map<string, uint16_t>> getVarTable(); 
+	shared_ptr<std::unordered_map<string, uint16_t>> getVarTable();
+	size_t getMemoryUsage() const;
+
 	void setCommandList(std::queue<shared_ptr<ICommand>>);
 
 	// TEMP FUNCTIONS FOR ACTIVITY
