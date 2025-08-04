@@ -92,7 +92,14 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_p
 
         cout << "allocating page " << (pageToAllocate + 1) << " of " << framesNeeded << " for " << processName << endl;
         auto [startByte, endByte] = allocateAt(pageToAllocate, currentPageSize, processName, pageToAllocate);
-        Console->setPageInfo(pageToAllocate, startByte, endByte, true);
+
+        if (startByte == -1 && endByte == -1) { // no free frames are available
+            cout << "Error allocating page " << pageToAllocate+1 << " for " << processName << endl;
+        }
+        else { // frames are available and have been set
+            Console->setPageInfo(pageToAllocate, startByte, endByte, true);
+        }
+        
 
         bytesToAllocate -= currentPageSize;
     }
