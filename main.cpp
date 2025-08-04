@@ -332,7 +332,7 @@ void SchedulerTest(int numCore) {
         ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ, DELAYS_PER_EXEC, MIN_MEM_PER_PROC, MAX_MEM_PER_PROC, MEM_PER_FRAME);
     }).detach();
 
-    system("cls");
+    //system("cls");
 }
 
 void SchedulerStop() {
