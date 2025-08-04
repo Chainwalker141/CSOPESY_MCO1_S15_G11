@@ -128,7 +128,7 @@ void FlatMemoryAllocator::deallocate(void* ptr, string processName) {
 // Deallocate one frame
 void FlatMemoryAllocator::deallocateIndividualFrame(size_t frameIndex) {
     //lock guard
-    std::lock_guard<std::mutex> lock(frameListMutex);
+    /*std::lock_guard<std::mutex> lock(frameListMutex);*/
 
     if (frameQueue.empty()) {
         std::cerr << "[OS Error] Frame queue is empty!\n";
