@@ -450,24 +450,27 @@ void ProcessSmi(size_t MAX_OVERALL_MEM, size_t MEM_PER_FRAME) {
     cout << "Running Processes and Memory Usage" << endl;
     cout << "--------------------------------------" << endl;
 
-   /* for (const auto& [processName, screenPtr] : screenMap) {
-        if (screenPtr->getCurrentLine() < screenPtr->getTotalLine()) {
-            size_t memUsed = screenPtr->getMemoryUsage();
-            for (const auto& page : pageTable) {
-                if (page.valid) {
-                    totalBytesUsed += (page.endByte - page.startByte + 1);
-                }
-            }
-            if (memUsed > 0) {
-                cout << "Process: " << processName << " " << memUsed << " bytes" << endl;
-            }
-        }
-    }*/
-
     for(const auto& [name, memUsed] : processMemories) {
         cout << "Name: " << name << " | Memory: " << memUsed << " bytes" << endl;
     }
     cout << "--------------------------------------" << endl;
+}
+
+void Vmstat() {
+    const auto& freeFrames = FlatMemoryAllocator::getInstance()->getFreeFrameList();
+    size_t freeMemory = freeFrames.size() * MEM_PER_FRAME;
+
+    cout << "--------------------------------------" << endl;
+    cout << "vmstat" << endl;
+    cout << "--------------------------------------" << endl;
+    cout << "Total Memory: " << MAX_OVERALL_MEM <<endl;
+    cout << "Used Memory: " << (MAX_OVERALL_MEM - freeMemory) << endl;
+    cout << "Free Memory: " << freeMemory << endl;
+    cout << "Idle CPU ticks: " << endl;
+    cout << "Active CPU ticks: " << endl;
+    cout << "Total CPU ticks: " << endl;
+    cout << "Num Paged In: " << endl;
+    cout << "Num Paged Out: " << endl;
 }
 
 void Clear() {
@@ -537,6 +540,10 @@ int main() {
         else if (command == "process-smi" && ConsoleManager::getInstance()->getInitialize()) {
             system("cls");
             ProcessSmi(MAX_OVERALL_MEM, MEM_PER_FRAME);
+        }
+        else if (command == "vmstat" && ConsoleManager::getInstance()->getInitialize()) {
+            system("cls");
+            Vmstat();
         }
         else if (command == "clear" && ConsoleManager::getInstance()->getInitialize()) {
             Clear();
