@@ -121,7 +121,6 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
     else {
         if (processDoneFlag) {
             //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
-            FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
             flatMemoryInstance->deallocate(currentProcess->getProcessName()); // Deallocate memory for the process
         }
         else {
@@ -132,26 +131,45 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
 }
 
 void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreId) {
+    bool processDoneFlag = false;
+    bool processTerminatedFlag = false;
+
+    FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
+    VMStat* vmstat = VMStat::getInstance();
+
     while (currentProcess->getCurrentLine() < currentProcess->getTotalLine()) {
-        /*{
-            static std::mutex coutMutex;
-            std::lock_guard<std::mutex> lock(coutMutex);
-            std::cout << "[Core " << coreId << "] ";
-            currentProcess->printContents();
-            std::cout << std::endl;
-        }*/
+        // Early termination check
+        if (currentProcess->getIsTerminated()) {
+            processTerminatedFlag = true;
+            break;
+        }
 
-        //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
         currentProcess->runInstruction();
-        //currentProcess->printFile(coreId); // TODO: FIX IMPLEMENTATION AFTER ACTIVITY
+        vmstat->addActiveTicks();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    // ENDOF FCFS
 
-    //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
-    this->coresUsed--; // TODO: MAKE SETTER
+    if (currentProcess->getCurrentLine() == currentProcess->getTotalLine()) {
+        processDoneFlag = true;
+    }
+
+    this->coresUsed--;
     this->coresAvailable++;
+
+    if (processTerminatedFlag) {
+        std::cout << "Process " << currentProcess->getProcessName() << " was prematurely terminated (FCFS)." << std::endl;
+        flatMemoryInstance->deallocate(currentProcess->getProcessName());
+    }
+    else {
+        if (processDoneFlag) {
+            flatMemoryInstance->deallocate(currentProcess->getProcessName());
+        }
+        else {
+            currentProcess->setCoreID(-1); // Just in case
+            assignProcess(currentProcess); // Unlikely to happen, but for consistency
+        }
+    }
 }
 
 void Scheduler::start() {
