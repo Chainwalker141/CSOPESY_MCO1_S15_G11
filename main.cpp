@@ -112,6 +112,7 @@ void Initialize() {
 // helper function for checking if number is a power of 2 (for memory sizes)
 bool isPowerOfTwo(size_t n) {
     if (n == 0) return false;
+    if (n < 64 || n > 65536) return false;
 
     while (n % 2 == 0) {
         n /= 2;
@@ -176,10 +177,10 @@ void Screen(std::vector<std::string> args) {
         if (screenCommand == "-s") {
             size_t memorySize = stoull(args[2]);
 
-            // check if memory size is valid
-            if (!isPowerOfTwo(memorySize)) {
-                throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2");
-            }
+        // check if memory size is valid
+        if (!isPowerOfTwo(memorySize)) {
+            throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2 and within [2^6 -> 2^16]");
+        }
 
             if (ConsoleManager::getInstance()->screenExists(processName)) {
                 cout << "Process " << processName << " already exists!\n";
@@ -192,6 +193,7 @@ void Screen(std::vector<std::string> args) {
 
                 consoleScreen = make_shared<Console>(
                     processName, 0, totalIns, ConsoleManager::getInstance()->getCurrentTimeStamp(), memorySize); // creates a process "P(N)" which has 10 lines and created at a certain time with 64 bytes of memory
+                consoleScreen->initializePageTable(MEM_PER_FRAME);
 
                 ConsoleManager::getInstance()->generateCommands(consoleScreen, DELAYS_PER_EXEC);
                 ConsoleManager::getInstance()->registerConsole(consoleScreen);
@@ -326,7 +328,7 @@ void SchedulerTest(int numCore) {
 
 	// Create a separate thread that continuously generates processes based on BATCH_PROCESS_FREQ
     std::thread([]() {
-        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ, DELAYS_PER_EXEC, MIN_MEM_PER_PROC, MAX_MEM_PER_PROC);
+        ConsoleManager::getInstance()->schedulerTest(BATCH_PROCESS_FREQ, DELAYS_PER_EXEC, MIN_MEM_PER_PROC, MAX_MEM_PER_PROC, MEM_PER_FRAME);
     }).detach();
 
     system("cls");

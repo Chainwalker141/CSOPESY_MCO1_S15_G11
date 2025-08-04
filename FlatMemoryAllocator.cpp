@@ -59,7 +59,7 @@ bool FlatMemoryAllocator::isProcessActive(string processName) const {
 }
 
 // Allocate memory block
-void* FlatMemoryAllocator::allocate(size_t memSize, string processName) {
+void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_ptr<Console> Console) {
     // determine how many frames are needed
     size_t framesNeeded = (memSize + memPerFrame - 1) / memPerFrame;
 
@@ -70,8 +70,7 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName) {
     }
 
     // Find the first available block that can accommodate the process
-    size_t remainingMemToAllocate = memSize;
-    size_t pageToAllocate = 0;
+    size_t bytesToAllocate = memSize;
 
     /*for (size_t i = 0; i < maximumSize; ++i) {
         if (allocationMap[i] == processName) {
@@ -86,10 +85,16 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName) {
         }
     }*/
 
-    for (size_t i = 0; i < framesNeeded; i++) {
-        cout << "allocating page " << i+1 << " of " << framesNeeded << " for " << processName << endl;
-        allocateAt(i, memSize, processName, pageToAllocate);
-        ++pageToAllocate;
+    
+    for (size_t pageToAllocate = 0; pageToAllocate < framesNeeded; pageToAllocate++) {
+
+        size_t currentPageSize = std::min(bytesToAllocate, memPerFrame);
+
+        cout << "allocating page " << (pageToAllocate + 1) << " of " << framesNeeded << " for " << processName << endl;
+        auto [startByte, endByte] = allocateAt(pageToAllocate, currentPageSize, processName, pageToAllocate);
+        Console->setPageInfo(pageToAllocate, startByte, endByte, true);
+
+        bytesToAllocate -= currentPageSize;
     }
 
     activeProcesses.insert(processName);
@@ -154,14 +159,14 @@ bool FlatMemoryAllocator::canAllocateAt(size_t index, size_t memSize, string pro
 }
 
 // Allocate memory at frame
-void FlatMemoryAllocator::allocateAt(size_t index, size_t memSize, string processName, size_t pageNum) {
+pair<size_t, size_t> FlatMemoryAllocator::allocateAt(size_t index, size_t bytesToAllocate, string processName, size_t pageNum) {
     size_t frameIndex;
     { // mutex just in case it gets called again
         std::lock_guard<std::mutex> lock(frameListMutex);
 
         if (freeFrameList.empty()) {
             std::cerr << "[OS Error] I lied haha, no frames available for: " << processName << " page: " << pageNum << endl;
-            return;
+            return { -1, -1 }; // no allocation
         }
 
         frameIndex = freeFrameList.back();
@@ -173,15 +178,23 @@ void FlatMemoryAllocator::allocateAt(size_t index, size_t memSize, string proces
   //      allocationMap[index + i] = processName;
   //  }
 
+    size_t startByte = frameIndex * memPerFrame;
+    size_t endByte = startByte + bytesToAllocate - 1;
+
+    for (size_t i = 0; i < bytesToAllocate; ++i) {
+        allocationMap[startByte + i] = processName;
+    }
+
     // Inserting into frameMap
     FrameInfo info;
     info.processName = processName;
-    info.pageNumber = pageNum; // TODO: CHANGE
+    info.pageNumber = pageNum;
 
     frameMap[frameIndex] = info;
 
 	cout << "Allocated frame " << frameIndex << " with page: " << pageNum << " for process: " << processName << endl;
     //cout << "Free frames: " << freeFrameList.size() << endl;
+    return { startByte, endByte };
 }
 
 // Deallocate memory at index
