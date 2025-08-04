@@ -27,7 +27,7 @@ private:
     std::condition_variable queueCV;
 
     void fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreId);
-    void rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, void* memoryPtr);
+    void rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, bool allocatedMemory);
 
 public:
     Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int coresAvailable, int timeQuantum, Scheduler::schedulingAlgorithm algo);

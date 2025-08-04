@@ -66,7 +66,7 @@ void Scheduler::assignProcess(std::shared_ptr<Console> console) {
     queueCV.notify_one();  // Wake up a core thread
 }
 
-void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, void* memoryPtr) {
+void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, bool allocatedMemory) {
     bool processDoneFlag = false;
     bool processTerminatedFlag = false;
     
@@ -75,7 +75,7 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
     std::string filename = "memory_stamp_" + std::to_string(quantumCycle) + ".txt";
     //flatMemoryInstance->logMemoryStateToFile(filename);
 
-    if (memoryPtr) {
+    if (allocatedMemory) {
         for (int i = 0; i < this->timeQuantum; i++) {
 
             //initial check to know if proc has been prematurely terminated
@@ -113,13 +113,13 @@ void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId,
     if (processTerminatedFlag) {
         cout << "Process " << currentProcess->getProcessName() << "was prematurely Terminated" << endl;
         FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
-        flatMemoryInstance->deallocate(memoryPtr, currentProcess->getProcessName()); // Deallocate memory for the process
+        flatMemoryInstance->deallocate(currentProcess->getProcessName()); // Deallocate memory for the process
     }
     else {
         if (processDoneFlag) {
             //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
             FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
-            flatMemoryInstance->deallocate(memoryPtr, currentProcess->getProcessName()); // Deallocate memory for the process
+            flatMemoryInstance->deallocate(currentProcess->getProcessName()); // Deallocate memory for the process
         }
         else {
             currentProcess->setCoreID(-1); // Reset Core ID for the process
@@ -158,7 +158,7 @@ void Scheduler::start() {
         coreThreads.emplace_back([this, coreId]() {
             while (isSchedulerRunning) {
                 std::shared_ptr<Console> currentProcess = nullptr;
-                void* allocatedMemory = nullptr;
+                bool allocatedMemory = false;
 
                 // READY QUEUE
                 {
@@ -178,9 +178,11 @@ void Scheduler::start() {
                 FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
                 // check if process is already allocated memory
                 if (flatMemoryInstance->isProcessActive(currentProcess->getProcessName())) { // get process from list
+                    cout << "memory is already allocated" << endl;
                     allocatedMemory = flatMemoryInstance->getPointerToProcess(currentProcess->getProcessName());
                 }
                 else { // allocate memory
+                    cout << "allocating memory" << endl;
                     allocatedMemory = flatMemoryInstance->allocate(
                         currentProcess->getMemSize(),
                         currentProcess->getProcessName(),
@@ -188,24 +190,7 @@ void Scheduler::start() {
                     );
 
                     // Backing store operation
-                    if (!allocatedMemory) {
-						// If allocation fails, try to evict a process to backing store
-                        std::string evictedProcess = flatMemoryInstance->evictOneProcessToBackingStore();
-
-           /*             cout << "[Core " << coreId << "] "
-							<< "Evicted process: " << evictedProcess << " to backing store." << std::endl;*/
-                        if (!evictedProcess.empty()) {
-                            // Load from backing store
-							/*flatMemoryInstance->loadPageFromBackingStore(evictedProcess, currentProcess);*/
-
-                            // Try allocating again after eviction
-                            /*allocatedMemory = flatMemoryInstance->allocate(
-                                currentProcess->getMemSize(),
-                                currentProcess->getProcessName(),
-                                currentProcess
-                            );*/
-						}
-                    }
+                    
                 }
                 
 
@@ -214,7 +199,8 @@ void Scheduler::start() {
                     /*std::cout << "[Core " << coreId << "] "
                               << "Failed to allocate memory for process "
                               << currentProcess->getProcessName() << ". Requeuing..." << std::endl;*/
-
+                    std::string evictedProcess = flatMemoryInstance->evictOneProcessToBackingStore();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // FOR DEBUGGING TO PREVENT SPAM
                     // retry later by requeuing
                     {
                         std::lock_guard<std::mutex> lock(queueMutex);

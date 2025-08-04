@@ -41,21 +41,21 @@ int FlatMemoryAllocator::getTotalFrames() {
     return totalFrames;
 }
 
-void* FlatMemoryAllocator::getPointerToProcess(string processName) {
+bool FlatMemoryAllocator::getPointerToProcess(string processName) {
     for (const auto& [frameIndex, info] : frameMap) {
         if (info.processName == processName && info.pageNumber == 0) {
-            return &memory[frameIndex * memPerFrame];
+            return true;
         }
     }
 
     // Fallback: return any frame belonging to the process if page 0 not found
     for (const auto& [frameIndex, info] : frameMap) {
         if (info.processName == processName) {
-            return &memory[frameIndex * memPerFrame];
+            return true;
         }
     }
 
-    return nullptr;
+    return false;
 }
 
 bool FlatMemoryAllocator::isProcessActive(string processName) const {
@@ -63,7 +63,7 @@ bool FlatMemoryAllocator::isProcessActive(string processName) const {
 }
 
 // Allocate memory block
-void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_ptr<Console> Console) {
+bool FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_ptr<Console> Console) {
 	cout << "Allocating memory for process: " << processName << " with size: " << memSize << endl;
 
     // determine how many frames are needed
@@ -72,7 +72,7 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_p
     // check if pages needed exceeds number of frames available
     if (framesNeeded > freeFrameList.size()) {
         //std::cerr << "Memory Allocation Failed. Not Enough free Frames. \n";
-        return nullptr;
+        return false;
     }
 
     // Find the first available block that can accommodate the process
@@ -99,12 +99,11 @@ void* FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_p
     activeProcesses.insert(processName);
     allocatedSize += memSize;
 
-    // No available block found, return nullptr
-    return nullptr;
+    return true;
 }
 
 // Deallocate memory block
-void FlatMemoryAllocator::deallocate(void* ptr, string processName) {
+void FlatMemoryAllocator::deallocate(string processName) {
     //size_t index = static_cast<char*>(ptr) - &memory[0];
     //if (allocationMap[index] == processName) {
     //    deallocateAt(index, processName);
@@ -366,42 +365,42 @@ void FlatMemoryAllocator::writePageToBackingStore(FrameInfo victimFrame) {
     outfile.close();
 }
 
-void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shared_ptr<Console> console) {
-    ifstream infile("csopesy-backing-store.txt");
-    if (!infile.is_open()) {
-        cerr << "Error opening backing store.\n";
-        return;
-    }
-
-    string line, content;
-    bool found = false;
-    while (getline(infile, line)) {
-        if (line == processName) {
-            found = true;
-            string data;
-            while (getline(infile, data) && !data.empty()) {
-                content += data;
-            }
-            break;
-        }
-    }
-    infile.close();
-
-    if (found) {
-        void* ptr = allocate(content.size(), processName, console);
-        if (ptr != nullptr) {
-            for (size_t i = 0; i < content.size(); ++i) {
-                memory[static_cast<char*>(ptr) - &memory[0] + i] = content[i];
-            }
-        }
-    }
-}
+//void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shared_ptr<Console> console) {
+//    ifstream infile("csopesy-backing-store.txt");
+//    if (!infile.is_open()) {
+//        cerr << "Error opening backing store.\n";
+//        return;
+//    }
+//
+//    string line, content;
+//    bool found = false;
+//    while (getline(infile, line)) {
+//        if (line == processName) {
+//            found = true;
+//            string data;
+//            while (getline(infile, data) && !data.empty()) {
+//                content += data;
+//            }
+//            break;
+//        }
+//    }
+//    infile.close();
+//
+//    if (found) {
+//        void* ptr = allocate(content.size(), processName, console);
+//        if (ptr != nullptr) {
+//            for (size_t i = 0; i < content.size(); ++i) {
+//                memory[static_cast<char*>(ptr) - &memory[0] + i] = content[i];
+//            }
+//        }
+//    }
+//}
 
 std::string FlatMemoryAllocator::evictOneProcessToBackingStore() {
 	std::lock_guard<std::mutex> lock(frameListMutex);
 
     if (frameQueue.empty()) {
-        std::cerr << "[OS Warning] No frames to evict  frameQueue is empty.\n";
+        std::cerr << "[OS Warning] No frames to evict frameQueue is empty.\n";
         return "";
     }
 
