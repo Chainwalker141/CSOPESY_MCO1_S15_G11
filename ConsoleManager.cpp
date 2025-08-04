@@ -410,15 +410,23 @@ void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, cons
     auto varTable = process->getVarTable();
     std::string processName = process->getProcessName();
 
+    int memSize = process->getMemSize();
+    int maxInstructions = (memSize - 64) / 2;
+    if (instructions.size() > maxInstructions) {
+        throw std::runtime_error(
+            "Invalid Command.\nInstruction count exceeds memory limit. Max allowed: " + std::to_string(maxInstructions)
+        );
+    }
+
     for (const auto& line : instructions) {
         try {
             std::shared_ptr<ICommand> cmd = parseInstruction(line, process, DELAYS_PER_EXEC);
             commandList.push(cmd);
-            // std::cout << "[Parsed] " << line << std::endl; // debug
+            std::cout << "[Parsed] " << line << std::endl; // debug
         }
         catch (const std::exception& e) {
-            // std::cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << std::endl;
-            std::cerr << "Invalid Command";
+            std::cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << std::endl;
+            std::cerr << "Invalid Command\n";
         }
     }
 

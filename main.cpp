@@ -222,6 +222,8 @@ void Screen(std::vector<std::string> args) {
             if (!isPowerOfTwo(memorySize)) {
                 throw std::runtime_error("Invalid Memory Size \nMemory size must be a power of 2");
             }
+            if (memorySize < 64 || memorySize > 65536)
+                throw std::runtime_error("Invalid Memory Size \nMemory size must be between 64 and 65536");
 
             if (args.size() < 4) {
                 cout << "Invalid Command Arguments \nCorrect Usage: screen -c <ProcessName> <Memory Size> \"<Instructions>\"";
