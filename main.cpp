@@ -211,6 +211,7 @@ void Screen(std::vector<std::string> args) {
                 }
 
                 cout << "screen resumed\n";
+                ConsoleManager::getInstance()->displayProcessSmi(processName);
             }
             else {
                 cout << "Process " << processName << " not found\n";
