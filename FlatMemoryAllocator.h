@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <mutex>
 #include "Console.h"
+#include "ConsoleManager.h"
 
 // Struct to store process name and page number in each frame
 struct FrameInfo {
@@ -26,6 +27,7 @@ public:
     bool allocate(size_t size, string processName, shared_ptr<Console> Console) override;
     void deallocate(string processName) override;
     void deallocateIndividualFrame(size_t frameIndex);
+    bool isPageLoaded(shared_ptr<Console> currentProcess);
     std::string visualizeMemory() override;
 
     bool getPointerToProcess(string processName);
@@ -34,10 +36,11 @@ public:
     static FlatMemoryAllocator* getInstance();
     const std::vector<size_t>& getFreeFrameList() const;
     int getTotalFrames();
+    int getMemPerFrame();
     void logMemoryStateToFile(const std::string& filename);
     void writePageToBackingStore(FrameInfo victimFrame);
     void loadPageFromBackingStore(string processName, std::shared_ptr<Console> console);
-    std::string evictOneProcessToBackingStore();
+    std::string evictOneProcessToBackingStore(shared_ptr<Console> currentProcess);
     bool isProcessActive(string processName) const;
 
 private:
@@ -58,12 +61,15 @@ private:
     //std::unordered_map<std::string, std::unordered_set<size_t>> processPageTable;
 
     std::mutex frameListMutex;
+    static std::mutex backingStoreMutex;
 
     // Helper methods
     void initializeMemory(); // Initializes memory and allocation map
     bool canAllocateAt(size_t index, size_t size, string processName); // Checks if block can be allocated
     pair<size_t, size_t> allocateAt(size_t index, size_t bytesToAllocate, string processName, size_t pageNum);    // Marks block as allocated
     void deallocateAt(size_t index, string processName);   
+
+    void printFrameMapContents();
     
 };
 
