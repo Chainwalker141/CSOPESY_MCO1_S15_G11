@@ -127,16 +127,16 @@ bool Console::isProcessDone(){
 
 void Console::runInstruction() {
 	// Check if current instruction is loaded onto memory
-	int currPage = getCurrentPage();
-	if (currPage < 0) {
-		cout << "Process out of memory";
-		return;			// TODO: Perform Error handling 
-	}
+	//int currPage = getCurrentPage();
+	//if (currPage < 0) {
+	//	cout << "Process out of memory";
+	//	return;			// TODO: Perform Error handling 
+	//}
 
-	if (!isPageLoaded(currPage)) {
-		cout << "Page not loaded";
-		return;			// TODO: Perform page loading mechanism
-	}
+	//if (!isPageLoaded(currPage)) {
+	//	cout << "Page not loaded";
+	//	return;			// TODO: Perform page loading mechanism
+	//}
 
 	this->commandList.front()->execute(); // Execute Current Line
 	commandList.pop(); // Pop out of list 
