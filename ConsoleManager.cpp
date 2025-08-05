@@ -526,7 +526,13 @@ uint16_t ConsoleManager::readAddress(string address, string processName)
 
     auto it = readWriteSpace->find(key);
 
-    if (it != readWriteSpace->end()) {
+    //if (it == readWriteSpace->end()) {
+    //    return it->second.value;
+    //}
+
+    if (it == readWriteSpace->end()) {
+        (*readWriteSpace)[address].processName = processName;
+        (*readWriteSpace)[address].value = 0;
         return 0;
     }
      

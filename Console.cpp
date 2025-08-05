@@ -98,7 +98,7 @@ bool Console::isPageLoaded(int index) {
 		cout << "INDEX OUT OF BOUNDS: " << index;
 		return -1;
 	}
-	cout << "size: " << pageTable->size() << " index: " << index;
+	//cout << "size: " << pageTable->size() << " index: " << index; // Debugging
 	return (*pageTable)[index].valid;
 }
 
