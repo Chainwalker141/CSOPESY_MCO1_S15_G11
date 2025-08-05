@@ -24,6 +24,14 @@ WriteCommand::WriteCommand(string processName, string address, string varName, s
 	}
 }
 
+size_t hexStringToDecimal(const std::string& hexStr) {
+	size_t decimalValue = 0;
+	std::stringstream ss;
+	ss << std::hex << hexStr;
+	ss >> decimalValue;
+	return decimalValue;
+}
+
 void WriteCommand::execute() {
 	auto screenMap = ConsoleManager::getInstance()->getScreenMap();
 	auto screen = screenMap.find(this->processName);
@@ -50,7 +58,18 @@ void WriteCommand::execute() {
 			return;
 		}
 
-		// TODO: Check if address accessed is within memory boundaries 
+		// Check if address accessed is within memory boundaries 
+		size_t memory_accessed = hexStringToDecimal(address);
+
+		std::shared_ptr<std::vector<PageInfo>> pageTable = console->getPageTable(); // Retrieve page table
+		int currentPage = console->getCurrentPage();
+		if (currentPage < 0) { // If current instruction exceeds memory allocation, ignore
+			// return 
+			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
+				"Failed to read to address (" + address + "). Memory allocation full; instruction ignored";
+			console->appendOutput(printLog);
+			return;
+		}
 
 		// Doesnt exist, check if there is space
 		if (varTable->size() >= 32) {
@@ -59,9 +78,10 @@ void WriteCommand::execute() {
 			console->appendOutput(printLog);
 		}
 
-		// Append value to symbol table
-		varTable->insert({ address, value });
-
+		// Append value to symbol table and the Read/Write space
+		ConsoleManager::getInstance()->writeToAddress(address, this->processName, this->value);
+		(*varTable)[address] = this->value;
+		// screenMap-><
 	}
 
 	busyWait();

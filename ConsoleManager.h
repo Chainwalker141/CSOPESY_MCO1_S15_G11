@@ -5,6 +5,17 @@
 
 using namespace std;
 
+struct AddressBlock {
+	uint16_t value;
+	std::string processName;
+
+	AddressBlock()
+		: value(0),
+		processName("")
+	{
+	}
+};
+
 class ConsoleManager {
 public:
 	ConsoleManager();
@@ -37,12 +48,18 @@ public:
 	std::shared_ptr<ICommand> parseInstruction(const std::string& line, std::shared_ptr<Console> process, int delays);
 	void generateUserCommands(std::shared_ptr<Console> process, const vector<string>& instructionLines, int DELAYS_PER_EXEC);
 
+	// Read/Write space for READ WRITE commands
+	void writeToAddress(string address, string processName, uint16_t value); 
+	uint16_t readAddress(string address, string processName);
+	
 private:
 	static ConsoleManager* consoleManager;
 	std::unordered_map<string, std::shared_ptr<Console>> screenMap;
 	bool isInit = false;
 	int maxIns = 0; 
 	int minIns = 0; 
+
+	static std::shared_ptr<std::unordered_map <string, AddressBlock>> readWriteSpace; // virtual read/write space for all processes
 
 	int generateRandInt(int minIns, int maxIns); //
 };

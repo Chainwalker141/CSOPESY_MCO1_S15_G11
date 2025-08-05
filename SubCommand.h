@@ -15,8 +15,8 @@ public:
 	void execute() override;
 
 private:
-	int val1 = -1; // First value
-	int val2 = -1; // Second value
+	uint16_t val1 = -1; // First value
+	uint16_t val2 = -1; // Second value
 
 	string diffVar = "";
 	string var1 = ""; // variable name for first value

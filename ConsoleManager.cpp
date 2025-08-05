@@ -17,12 +17,14 @@
 using namespace std;
 
 ConsoleManager* ConsoleManager::consoleManager = nullptr;
+std::mutex readWriteSpaceMutex;
 
 ConsoleManager::ConsoleManager() {
 };
 
 void ConsoleManager::initialize() {
     consoleManager = new ConsoleManager();
+    readWriteSpace = std::make_shared<std::unordered_map<string, AddressBlock>>();
 }
 
 ConsoleManager* ConsoleManager::getInstance()
@@ -453,6 +455,57 @@ void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, cons
 
 unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {
     return this->screenMap;
+}
+
+void ConsoleManager::writeToAddress(string address, string processName, uint16_t value)
+{
+    std::lock_guard<std::mutex> lock(readWriteSpaceMutex);
+
+    // Ensure readWriteSpace is initialized
+    if (!readWriteSpace) {
+        readWriteSpace = std::make_shared<std::unordered_map<string, AddressBlock>>();
+    }
+
+    std::string key = address;
+
+    auto it = readWriteSpace->find(key);
+    if (it != readWriteSpace->end() && it->second.processName != processName) { // Accessing address from a different process
+        // Memory Access Error
+        cout << "Process " + processName + "accessed memory out of its scope.";
+        return;
+    }
+
+    // Write value to the AddressBlock (assuming AddressBlock has a suitable interface)
+    (*readWriteSpace)[key].value = value;
+    (*readWriteSpace)[key].processName = processName;
+}
+
+uint16_t ConsoleManager::readAddress(string address, string processName)
+{
+    std::lock_guard<std::mutex> lock(readWriteSpaceMutex);
+
+    // Ensure readWriteSpace is initialized
+    if (!readWriteSpace) {
+        readWriteSpace = std::make_shared<std::unordered_map<string, AddressBlock>>();
+    }
+
+    std::string key = address;
+
+    auto it = readWriteSpace->find(key);
+
+    if (it != readWriteSpace->end()) {
+        return 0;
+    }
+     
+    if (it->second.processName != processName) {
+        cout << "Process " + processName + "accessed memory out of its scope.";
+        // Memory Access error 
+        // Kill program
+        return 999;
+    }
+
+    return it->second.value;
+    // Return 0 or handle as needed if not found or processName mismatch
 }
 
 // screen -ls
