@@ -20,130 +20,110 @@ Scheduler::Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int c
     this->timeQuantum = timeQuantum;
     this->algo = algo;
 }
-    }
 
-    void Scheduler::initialize(int numCores, int timeQuantum, string schedulingAlgorithm) {
-        if (schedulingAlgorithm == "rr") {
-            scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, RR);
-        }
-        else if (schedulingAlgorithm == "fcfs") {
-            scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, FCFS);
-        }
+void Scheduler::initialize(int numCores, int timeQuantum, string schedulingAlgorithm) {
+    if (schedulingAlgorithm == "rr") {
+        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, RR);
     }
-
-    Scheduler* Scheduler::getInstance() {
-	    return scheduler;
+    else if (schedulingAlgorithm == "fcfs") {
+        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, FCFS);
     }
+}
 
-    bool Scheduler::getIsSchedulerTestRunning()
+Scheduler* Scheduler::getInstance() {
+	return scheduler;
+}
+
+bool Scheduler::getIsSchedulerTestRunning()
+{
+	return this->isSchedulerTestRunning;
+}
+
+int Scheduler::getCoresUsed() {
+    return this->coresUsed;
+}
+
+int Scheduler::getCoresAvailable() {
+    return this->coresAvailable;
+}
+
+void Scheduler::setCoresUsed(int coresUsed) {
+    this->coresUsed = coresUsed;
+}
+
+void Scheduler::setCoresAvailable(int coresAvailable) {
+    this->coresAvailable = coresAvailable;
+}
+
+void Scheduler::setIsSchedulerTestRunning(bool isSchedulerTestRunning)
+{
+	this->isSchedulerTestRunning = isSchedulerTestRunning;
+}
+
+void Scheduler::assignProcess(std::shared_ptr<Console> console) {
     {
-	    return this->isSchedulerTestRunning;
+        std::lock_guard<std::mutex> lock(queueMutex);
+        processQueue.push(console);
     }
+    queueCV.notify_one();  // Wake up a core thread
+}
 
-    int Scheduler::getCoresUsed() {
-        return this->coresUsed;
-    }
-
-    int Scheduler::getCoresAvailable() {
-        return this->coresAvailable;
-    }
-
-    void Scheduler::setCoresUsed(int coresUsed) {
-        this->coresUsed = coresUsed;
-    }
-
-    void Scheduler::setCoresAvailable(int coresAvailable) {
-        this->coresAvailable = coresAvailable;
-    }
-
-    void Scheduler::setIsSchedulerTestRunning(bool isSchedulerTestRunning)
-    {
-	    this->isSchedulerTestRunning = isSchedulerTestRunning;
-    }
-
-    void Scheduler::assignProcess(std::shared_ptr<Console> console) {
-        {
-            std::lock_guard<std::mutex> lock(queueMutex);
-            processQueue.push(console);
-        }
-        queueCV.notify_one();  // Wake up a core thread
-    }
-
-    void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, bool allocatedMemory) {
-        bool processDoneFlag = false;
-        bool processTerminatedFlag = false;
+void Scheduler::rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, bool allocatedMemory) {
+    bool processDoneFlag = false;
+    bool processTerminatedFlag = false;
     
-
     // Log memory state to file after a quantum cycle
     FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
     VMStat* vmstat = VMStat::getInstance();
     std::string filename = "memory_stamp_" + std::to_string(quantumCycle) + ".txt";
     //flatMemoryInstance->logMemoryStateToFile(filename);
-
     if (allocatedMemory) {
         for (int i = 0; i < this->timeQuantum; i++) {
-            
+
             //initial check to know if proc has been prematurely terminated
             if (currentProcess->getIsTerminated()) {
                 processTerminatedFlag = true;
                 break;
             }
 
-        if (allocatedMemory) {
-            for (int i = 0; i < this->timeQuantum; i++) {
+            int currentLine = currentProcess->getCurrentLine();
+            int pageNumber = currentLine / flatMemoryInstance->getMemPerFrame();
 
-                //initial check to know if proc has been prematurely terminated
-                if (currentProcess->getIsTerminated()) {
-                    processTerminatedFlag = true;
-                    break;
-                }
+            currentProcess->runInstruction();
+            vmstat->addActiveTicks();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
 
-                int currentLine = currentProcess->getCurrentLine();
-                int pageNumber = currentLine / flatMemoryInstance->getMemPerFrame();
-
-                currentProcess->runInstruction();
-                vmstat->addActiveTicks();
-                std::this_thread::sleep_for(std::chrono::milliseconds(100)); // smaller number = faster processing time
-
-                // Process is done but timeQuantum has not been finished
-                if (currentProcess->getCurrentLine() == currentProcess->getTotalLine()) {
-                    processDoneFlag = true;
-                    break;
-                }
-            }
-            static std::mutex quantumMutex;
-            {
-                std::lock_guard<std::mutex> lock(quantumMutex);
-                quantumCycle++;
+            // Process is done but timeQuantum has not been finished
+            if (currentProcess->getCurrentLine() == static_cast<int>(currentProcess->getTotalLine())) {
+                processDoneFlag = true;
+                break;
             }
         }
-        else {
-            //cout << "Process " << currentProcess->getProcessName() << " not in memory, skipping... \n" ;
+        static std::mutex quantumMutex;
+        {
+            std::lock_guard<std::mutex> lock(quantumMutex);
+            quantumCycle++;
         }
+    }
+    else {
+        //cout << "Process " << currentProcess->getProcessName() << " not in memory, skipping... \n" ;
+    }
 
-        this->coresUsed--; // TODO: MAKE SETTER
-        this->coresAvailable++;
+    this->coresUsed--; // TODO: MAKE SETTER
+    this->coresAvailable++;
 
     if (processTerminatedFlag) {
         cout << "Process " << currentProcess->getProcessName() << "was prematurely Terminated" << endl;
         FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
         flatMemoryInstance->deallocate(currentProcess->getProcessName()); // Deallocate memory for the process
-    }
-    else {
+    } else {
         if (processDoneFlag) {
             //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
             flatMemoryInstance->deallocate(currentProcess->getProcessName()); // Deallocate memory for the process
         }
         else {
-            if (processDoneFlag) {
-                //cout << "\nFinished executing " << currentProcess->getProcessName() << endl;
-                FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
-                flatMemoryInstance->deallocate(currentProcess->getProcessName()); // Deallocate memory for the process
-            }
-            else {
-                currentProcess->setCoreID(-1); // Reset Core ID for the process
-                assignProcess(currentProcess); // Put Process back to the queue.
-            }
+            currentProcess->setCoreID(-1); // Reset Core ID for the process
+            assignProcess(currentProcess); // Put Process back to the queue.
         }
     }
 }
@@ -223,11 +203,11 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
                     FlatMemoryAllocator* flatMemoryInstance = FlatMemoryAllocator::getInstance();
                     // check if process is already allocated memory
                     if (flatMemoryInstance->isProcessActive(currentProcess->getProcessName())) { // get process from list
-                        cout << "memory is already allocated" << endl;
+                        //cout << "memory is already allocated" << endl;
                         allocatedMemory = flatMemoryInstance->isPageLoaded(currentProcess);
 
                         if (!allocatedMemory) {
-                            std::cout << "[Page Fault] Page not found in memory. Reloading...\n";
+                            //std::cout << "[Page Fault] Page not found in memory. Reloading...\n";
                             flatMemoryInstance->loadPageFromBackingStore(currentProcess->getProcessName(), currentProcess);
 
                             // Try again
@@ -235,14 +215,12 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
                         }
                     }
                     else { // allocate memory
-                        cout << "allocating memory" << endl;
+                        //cout << "allocating memory" << endl;
                         allocatedMemory = flatMemoryInstance->allocate(
                             currentProcess->getMemSize(),
                             currentProcess->getProcessName(),
                             currentProcess
                         );
-
-                    
                     }
                 
 
@@ -262,11 +240,6 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
                         queueCV.notify_all(); // wake other cores
                         continue; // skip this iteration
                     }
-
-                    /*std::cout << "[Core " << coreId << "] "
-                              << "Process " << currentProcess->getProcessName()
-                              << " allocated " << currentProcess->getMemSize()
-                              << " bytes in memory." << std::endl;*/
 
                     currentProcess->setCoreID(coreId);
 
