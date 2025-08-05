@@ -119,6 +119,9 @@ bool FlatMemoryAllocator::allocate(size_t memSize, string processName, shared_pt
     activeProcesses.insert(processName);
     allocatedSize += memSize;
 
+    // track how much memory was consumed
+    VMStat::getInstance()->addUsedMemory(memPerFrame*framesNeeded);
+
     return true;
 }
 
@@ -300,6 +303,8 @@ void FlatMemoryAllocator::deallocateAt(size_t index, string processName) {
         // Return frame to freeFrameList and remove from frameMap
         freeFrameList.push_back(frameIndex);
         frameMap.erase(frameIndex);
+        // track how much was freed
+        VMStat::getInstance()->subUsedMemory(memPerFrame);
     }
 
     //cout << "Deallocated " << framesToFree.size() << " frame(s) for process: " << processName << endl;
