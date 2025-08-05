@@ -1,12 +1,14 @@
 #pragma once
 
 #include "IMemoryAllocator.h"
+#include "VMStat.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <mutex>
 #include "Console.h"
+#include "ConsoleManager.h"
 
 // Struct to store process name and page number in each frame
 struct FrameInfo {
@@ -59,12 +61,15 @@ private:
     //std::unordered_map<std::string, std::unordered_set<size_t>> processPageTable;
 
     std::mutex frameListMutex;
+    static std::mutex backingStoreMutex;
 
     // Helper methods
     void initializeMemory(); // Initializes memory and allocation map
     bool canAllocateAt(size_t index, size_t size, string processName); // Checks if block can be allocated
     pair<size_t, size_t> allocateAt(size_t index, size_t bytesToAllocate, string processName, size_t pageNum);    // Marks block as allocated
     void deallocateAt(size_t index, string processName);   
+
+    void printFrameMapContents();
     
 };
 

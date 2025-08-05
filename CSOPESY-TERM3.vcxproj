@@ -141,6 +141,7 @@
     <ClCompile Include="SleepCommand.cpp" />
     <ClCompile Include="SubCommand.cpp" />
     <ClCompile Include="WriteCommand.cpp" />
+    <ClCompile Include="VMStat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddCommand.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="SleepCommand.h" />
     <ClInclude Include="SubCommand.h" />
     <ClInclude Include="WriteCommand.h" />
+    <ClInclude Include="VMStat.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
