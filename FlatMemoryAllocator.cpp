@@ -37,6 +37,10 @@ const std::vector<size_t>& FlatMemoryAllocator::getFreeFrameList() const {
     return freeFrameList;
 }
 
+int FlatMemoryAllocator::getMemPerFrame() {
+    return memPerFrame;
+}
+
 int FlatMemoryAllocator::getTotalFrames() {
     return totalFrames;
 }
@@ -135,6 +139,15 @@ void FlatMemoryAllocator::deallocateIndividualFrame(size_t frameIndex) {
     frameMap.erase(frameIndex);
 
     std::cout << "[Deallocate] Frame " << frameIndex << " from process " << processName << " deallocated.\n";
+}
+
+bool FlatMemoryAllocator::isPageLoaded(const std::string& processName, int pageNumber) {
+    for (const auto& [frameIndex, info] : frameMap) {
+        if (info.processName == processName && info.pageNumber == pageNumber) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Visualize memory
@@ -365,36 +378,31 @@ void FlatMemoryAllocator::writePageToBackingStore(FrameInfo victimFrame) {
     outfile.close();
 }
 
-//void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shared_ptr<Console> console) {
-//    ifstream infile("csopesy-backing-store.txt");
-//    if (!infile.is_open()) {
-//        cerr << "Error opening backing store.\n";
-//        return;
-//    }
-//
-//    string line, content;
-//    bool found = false;
-//    while (getline(infile, line)) {
-//        if (line == processName) {
-//            found = true;
-//            string data;
-//            while (getline(infile, data) && !data.empty()) {
-//                content += data;
-//            }
-//            break;
-//        }
-//    }
-//    infile.close();
-//
-//    if (found) {
-//        void* ptr = allocate(content.size(), processName, console);
-//        if (ptr != nullptr) {
-//            for (size_t i = 0; i < content.size(); ++i) {
-//                memory[static_cast<char*>(ptr) - &memory[0] + i] = content[i];
-//            }
-//        }
-//    }
-//}
+void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shared_ptr<Console> console) {
+    std::ifstream infile("csopesy-backing-store.txt");
+    if (!infile.is_open()) {
+        std::cerr << "Error opening backing store.\n";
+        return;
+    }
+
+    std::string line;
+    int pageNumber = -1;
+    bool found = false;
+
+    // Look for the latest occurrence of the process + PAGE entry
+    while (getline(infile, line)) {
+        if (line == "PROCESS " + processName) {
+            getline(infile, line); // Should be "PAGE X"
+            if (line.rfind("PAGE ", 0) == 0) {
+                pageNumber = std::stoi(line.substr(5));
+                found = true;
+                break;
+            }
+        }
+    }
+
+	cout << "Loading page " << pageNumber << " for process " << processName << endl;
+}
 
 std::string FlatMemoryAllocator::evictOneProcessToBackingStore() {
 	std::lock_guard<std::mutex> lock(frameListMutex);

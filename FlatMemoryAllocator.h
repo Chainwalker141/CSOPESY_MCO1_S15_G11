@@ -25,6 +25,7 @@ public:
     bool allocate(size_t size, string processName, shared_ptr<Console> Console) override;
     void deallocate(string processName) override;
     void deallocateIndividualFrame(size_t frameIndex);
+    bool isPageLoaded(const std::string& processName, int pageNumber);
     std::string visualizeMemory() override;
 
     bool getPointerToProcess(string processName);
@@ -33,6 +34,7 @@ public:
     static FlatMemoryAllocator* getInstance();
     const std::vector<size_t>& getFreeFrameList() const;
     int getTotalFrames();
+    int getMemPerFrame();
     void logMemoryStateToFile(const std::string& filename);
     void writePageToBackingStore(FrameInfo victimFrame);
     void loadPageFromBackingStore(string processName, std::shared_ptr<Console> console);
