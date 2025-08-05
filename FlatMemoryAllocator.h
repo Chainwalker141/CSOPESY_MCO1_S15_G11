@@ -36,7 +36,7 @@ public:
     static FlatMemoryAllocator* getInstance();
     const std::vector<size_t>& getFreeFrameList() const;
     int getTotalFrames();
-    int getMemPerFrame();
+    size_t getMemPerFrame();
     void logMemoryStateToFile(const std::string& filename);
     void writePageToBackingStore(FrameInfo victimFrame);
     void loadPageFromBackingStore(string processName, std::shared_ptr<Console> console);
