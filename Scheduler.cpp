@@ -87,11 +87,11 @@
                 int currentLine = currentProcess->getCurrentLine();
                 int pageNumber = currentLine / flatMemoryInstance->getMemPerFrame();
 
-                cout << "[Core " << coreId << "] "
+                /*cout << "[Core " << coreId << "] "
                      << "Executing process: " << currentProcess->getProcessName()
                      << " | Current Line: " << currentLine
                      << " | Page Number: " << pageNumber
-					<< " | Total Lines: " << currentProcess->getTotalLine() << endl;
+					<< " | Total Lines: " << currentProcess->getTotalLine() << endl;*/
 
                 //currentProcess->setCurrentLine(currentProcess->getCurrentLine() + 1);
 
@@ -191,7 +191,7 @@
                         allocatedMemory = flatMemoryInstance->isPageLoaded(currentProcess);
 
                         if (!allocatedMemory) {
-                            std::cout << "[Page Fault] Page 0 not found in memory. Reloading...\n";
+                            std::cout << "[Page Fault] Page not found in memory. Reloading...\n";
                             flatMemoryInstance->loadPageFromBackingStore(currentProcess->getProcessName(), currentProcess);
 
                             // Try again
