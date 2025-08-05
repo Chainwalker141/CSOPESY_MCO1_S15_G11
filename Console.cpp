@@ -160,7 +160,7 @@ bool Console::isProcessDone(){
 }
 
 void Console::runInstruction() {
-	// Check if current instruction is loaded onto memory
+	 //Check if current instruction is loaded onto memory
 	//int currPage = getCurrentPage();
 	//if (currPage < 0) {
 	//	cout << "Process out of memory";

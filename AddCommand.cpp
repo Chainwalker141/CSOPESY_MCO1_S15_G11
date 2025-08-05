@@ -101,8 +101,7 @@ void AddCommand::execute() {
         // If sumVar variable exists in varTable, replace value with sum. Otherwise, insert
         (*varTable)[sumVar] = sum;
 
-
-        /*cout << "X = " << (*varTable)[sumVar];*/
+        cout << "X = " << (*varTable)[sumVar];
 
         //cout << this->processName << " Sum: " << varTable->find(sumVar)->second; // COMMENT OUT. sFOR TESTING
 
@@ -113,6 +112,7 @@ void AddCommand::execute() {
             "Added " + operand1 + " and " + operand2 + " to get " + std::to_string(sum) +
             ", stored in variable: " + sumVar;
 
+        
         console->appendOutput(printLog);
     }
 

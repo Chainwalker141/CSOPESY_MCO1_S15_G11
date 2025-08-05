@@ -421,12 +421,12 @@ shared_ptr<ICommand> ConsoleManager::parseInstruction(const string& line, shared
 
     else if (keyword == "READ") {
         string address, varName;
-        iss >> address >> varName;
+        iss >> varName >> address;
 
         if (address.empty() || varName.empty()) {
             throw runtime_error("Invalid Command. Missing READ command arguments.");
         }
-
+        cout << processName << address << varName << varTable << delays;
         return make_shared<ReadCommand>(processName, address, varName, varTable, delays);
     }
 

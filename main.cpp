@@ -215,7 +215,7 @@ void Screen(std::vector<std::string> args) {
                 if (consoleScreen->getIsTerminated()) {
                     // TODO: CHANGE TO ACTUAL CODE
                     cout << "Process " << processName << " shut down due to memory access violation error that occurred at <HH:MM:SS>. "
-                         << "<Hex memory address> invalid\n";
+                        << "<Hex memory address> invalid\n";
                     return;
                 }
 

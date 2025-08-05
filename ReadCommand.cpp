@@ -40,6 +40,7 @@ void ReadCommand::execute() {
 			(*varTable)[varName] = value;
 			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
 				"Read address (" + keyVal->first + ") with value: " + std::to_string(value) + " and stored to " + varName;
+			//cout << "Here1" << value;
 			console->appendOutput(printLog);
 			return;
 		}
@@ -53,6 +54,7 @@ void ReadCommand::execute() {
 			// return 
 			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
 				"Failed to read to address (" + address + "). Memory allocation full; instruction ignored";
+			//cout << "Here2";
 			console->appendOutput(printLog);
 			return;
 		}
@@ -61,6 +63,7 @@ void ReadCommand::execute() {
 		if (memory_accessed >= (*pageTable)[currentPage].startByte && memory_accessed <= (*pageTable)[currentPage].endByte) {
 			uint16_t valueStored = ConsoleManager::getInstance()->readAddress(address, processName);
 			(*varTable)[varName] = valueStored;
+			//cout << "Here3";
 			return;
 		}
 
@@ -69,11 +72,13 @@ void ReadCommand::execute() {
 			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
 				"Failed to read to address (" + address + "). Symbol table full; instruction ignored";
 			console->appendOutput(printLog);
+			//cout << "Here4";
 			return;
 		}
 
 		// Append value to symbol table and read/write space
 		this->value = ConsoleManager::getInstance()->readAddress(address, processName);
 		(*varTable)[varName] = this->value;
+		//cout << "Here5 " << varName << " " << value;
 	}
 }

@@ -14,5 +14,6 @@ private:
 	string address;
 	uint16_t value; 
 	std::shared_ptr<std::unordered_map <string, uint16_t>> varTable;
+	string varName;
 }
 ;
