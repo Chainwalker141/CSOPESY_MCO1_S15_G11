@@ -13,6 +13,7 @@
 #include "SubCommand.h"
 #include "SleepCommand.h"
 #include "ForCommand.h"
+#include "FlatMemoryAllocator.h"
 
 using namespace std;
 

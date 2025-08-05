@@ -47,6 +47,10 @@ void Console::setMemSize(size_t memSize) {
 	this->mem_size = memSize;
 }
 
+void Console::setIsTerminated(bool terminated) {
+	this->isTerminated = terminated;
+}
+
 string Console::getProcessName()
 {
 	return this->processName;
@@ -75,8 +79,24 @@ size_t Console::getMemSize() {
 	return this->mem_size;
 }
 
+bool Console::getIsTerminated() {
+	return this->isTerminated;
+}
+
 std::shared_ptr<std::unordered_map < string, uint16_t>> Console::getVarTable() {
 	return this->varTable;
+}
+
+size_t Console::getMemoryUsage() const {
+    size_t totalBytes = 0;
+    if (pageTable) {
+        for (const auto& page : *pageTable) {
+            if (page.valid) {
+                totalBytes += (page.endByte - page.startByte + 1);
+            }
+        }
+    }
+    return totalBytes;
 }
 
 void Console::appendOutput(const std::string& msg) {
@@ -152,9 +172,14 @@ void Console::runInstruction() {
 		return;			// TODO: Perform page loading mechanism
 	}
 
-	this->commandList.front()->execute(); // Execute Current Line
-	commandList.pop(); // Pop out of list 
-	this->setCurrentLine(this->getCurrentLine() + 1); // Increment current instruction line
+	if (!commandList.empty()) {
+		commandList.front()->execute(); // Execute Current Line
+		commandList.pop(); // Pop out of list 
+		this->setCurrentLine(this->getCurrentLine() + 1); // Increment current instruction line
+	}
+	else {
+		cout << "No commands left to execute for process: " << processName << endl;
+	}
 }
 
 void Console::printContents() {

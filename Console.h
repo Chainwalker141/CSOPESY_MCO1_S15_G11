@@ -32,6 +32,7 @@ public:
 	void setTimestamp(string timestamp);
 	void setCoreID(int coreID);
 	void setMemSize(size_t memSize);
+	void setIsTerminated(bool terminated);
 
 	string getProcessName();
 	int getCurrentLine();
@@ -39,11 +40,14 @@ public:
 	string getTimestamp();
 	int getCoreID();
 	size_t getMemSize();
+	bool getIsTerminated();
 
 	string getContents();
 	bool isProcessDone();
 
-	shared_ptr<std::unordered_map<string, uint16_t>> getVarTable(); 
+	shared_ptr<std::unordered_map<string, uint16_t>> getVarTable();
+	size_t getMemoryUsage() const;
+
 	void setCommandList(std::queue<shared_ptr<ICommand>>);
 
 	// TEMP FUNCTIONS FOR ACTIVITY
@@ -76,7 +80,8 @@ private:
 	// paging
 	std::shared_ptr<std::vector<PageInfo>> pageTable;
 	size_t memPerFrame;
-
+	bool isTerminated = false;
+	
 	// COMMANDLIST IMPLEMENTATION
 	std::shared_ptr<std::unordered_map < string, uint16_t>> varTable; // Symbol Table for variables, both <varName, value> and <address, value> 
 	std::queue<std::shared_ptr<ICommand>> commandList;

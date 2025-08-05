@@ -22,16 +22,23 @@ public:
     static void initialize(size_t maximumSize, size_t memPerFrame);
 
     // Core interface overrides
-    void* allocate(size_t size, string processName, shared_ptr<Console> Console) override;
-    void deallocate(void* ptr, string processName) override;
+    bool allocate(size_t size, string processName, shared_ptr<Console> Console) override;
+    void deallocate(string processName) override;
+    void deallocateIndividualFrame(size_t frameIndex);
+    bool isPageLoaded(shared_ptr<Console> currentProcess);
     std::string visualizeMemory() override;
 
-    void* getPointerToProcess(string processName);
+    bool getPointerToProcess(string processName);
 
     // Getters
     static FlatMemoryAllocator* getInstance();
+    const std::vector<size_t>& getFreeFrameList() const;
     int getTotalFrames();
+    int getMemPerFrame();
     void logMemoryStateToFile(const std::string& filename);
+    void writePageToBackingStore(FrameInfo victimFrame);
+    void loadPageFromBackingStore(string processName, std::shared_ptr<Console> console);
+    std::string evictOneProcessToBackingStore(shared_ptr<Console> currentProcess);
     bool isProcessActive(string processName) const;
 
 private:
@@ -48,6 +55,8 @@ private:
     std::unordered_map <size_t, FrameInfo> frameMap; // FRAME MAP IN RAM, key is frame num, value is the Frame Info which contains the procName and its page
     std::vector<size_t> freeFrameList; // TO DETERMINE WHICH FRAMES ARE UNOCCUPIED
     std::unordered_set<std::string> activeProcesses;
+    std::queue<size_t> frameQueue; // queue to track pages for each process
+    //std::unordered_map<std::string, std::unordered_set<size_t>> processPageTable;
 
     std::mutex frameListMutex;
 
