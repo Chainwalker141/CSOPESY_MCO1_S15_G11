@@ -162,15 +162,15 @@ bool Console::isProcessDone(){
 void Console::runInstruction() {
 	// Check if current instruction is loaded onto memory
 	int currPage = getCurrentPage();
-	if (currPage < 0) {
-		cout << "Process out of memory; Current Instruction: " << currentLine;
-		return;			// TODO: Perform Error handling 
-	}
+	//if (currPage < 0) {
+	//	cout << "Process out of memory; Current Instruction: " << currentLine;
+	//	return;			// TODO: Perform Error handling 
+	//}
 
-	if (!isPageLoaded(currPage)) {
-		cout << "Page not loaded";
-		return;			// TODO: Perform page loading mechanism
-	}
+	//if (!isPageLoaded(currPage)) {
+	//	cout << "Page not loaded";
+	//	return;			// TODO: Perform page loading mechanism
+	//}
 
 	if (!commandList.empty()) {
 		commandList.front()->execute(); // Execute Current Line
