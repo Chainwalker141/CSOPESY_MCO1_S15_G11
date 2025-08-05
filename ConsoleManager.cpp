@@ -17,6 +17,7 @@
 using namespace std;
 
 ConsoleManager* ConsoleManager::consoleManager = nullptr;
+std::shared_ptr<std::unordered_map<std::string, AddressBlock>> ConsoleManager::readWriteSpace = nullptr;
 std::mutex readWriteSpaceMutex;
 
 ConsoleManager::ConsoleManager() {

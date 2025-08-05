@@ -5,9 +5,11 @@ ReadCommand::ReadCommand(string processName, string address, string varName, std
 	: ICommand(processName, ICommand::READ, delay) {
 	this->varName = varName; 
 	this->address = address;
+	this->value = 0;
+	this->varTable = varTable;
 }
 
-size_t hexStringToDecimal(const std::string& hexStr) {
+size_t ReadCommand::hexStringToDecimal(const std::string& hexStr) {
 	size_t decimalValue = 0;
 	std::stringstream ss;
 	ss << std::hex << hexStr;
@@ -24,7 +26,7 @@ void ReadCommand::execute() {
 		auto keyVal = varTable->find(address);
 
 		// Check if symbol table pages are loaded 
-		int pages = console->getSymbolTablePages();
+		size_t pages = console->getSymbolTablePages();
 
 		for (int i = 0; i < pages; i++) {
 			if (!console->isPageLoaded(i)) {
@@ -71,7 +73,7 @@ void ReadCommand::execute() {
 		}
 
 		// Append value to symbol table and read/write space
-		uint16_t valueStored = ConsoleManager::getInstance()->readAddress(address, processName);
-		(*varTable)[varName] = valueStored;
+		this->value = ConsoleManager::getInstance()->readAddress(address, processName);
+		(*varTable)[varName] = this->value;
 	}
 }

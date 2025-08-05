@@ -24,7 +24,7 @@ WriteCommand::WriteCommand(string processName, string address, string varName, s
 	}
 }
 
-size_t hexStringToDecimal(const std::string& hexStr) {
+size_t WriteCommand::hexStringToDecimal(const std::string& hexStr) {
 	size_t decimalValue = 0;
 	std::stringstream ss;
 	ss << std::hex << hexStr;
@@ -41,7 +41,7 @@ void WriteCommand::execute() {
 		auto keyVal = varTable->find(address);
 
 		// Check if symbol table pages are loaded 
-		int pages = console->getSymbolTablePages();
+		size_t pages = console->getSymbolTablePages();
 
 		for (int i = 0; i < pages; i++) {
 			if (!console->isPageLoaded(i)) {
