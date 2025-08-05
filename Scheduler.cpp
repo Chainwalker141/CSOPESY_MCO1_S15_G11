@@ -11,7 +11,7 @@ Scheduler* Scheduler::scheduler = nullptr;
 int Scheduler::quantumCycle = 0; // remove after activity week 10
 
 
-Scheduler::Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int coresAvailable, int timeQuantum, Scheduler::schedulingAlgorithm algo)
+Scheduler::Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int coresAvailable, int timeQuantum, Scheduler::schedulingAlgorithm algo, int DELAYS_PER_EXEC)
 {
 	this->numCores = numCores;
 	this->isSchedulerRunning = isSchedulerRunning;
@@ -19,14 +19,15 @@ Scheduler::Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int c
     this->coresAvailable = coresAvailable;
     this->timeQuantum = timeQuantum;
     this->algo = algo;
+    this->DELAYS_PER_EXEC = DELAYS_PER_EXEC;
 }
 
-void Scheduler::initialize(int numCores, int timeQuantum, string schedulingAlgorithm) {
+void Scheduler::initialize(int numCores, int timeQuantum, string schedulingAlgorithm, int DELAYS_PER_EXEC) {
     if (schedulingAlgorithm == "rr") {
-        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, RR);
+        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, RR, DELAYS_PER_EXEC);
     }
     else if (schedulingAlgorithm == "fcfs") {
-        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, FCFS);
+        scheduler = new Scheduler(numCores, false, 0, numCores, timeQuantum, FCFS, DELAYS_PER_EXEC);
     }
 }
 
@@ -154,6 +155,8 @@ void Scheduler::fcfsScheduler(std::shared_ptr<Console> currentProcess, int coreI
 
     this->coresUsed--;
     this->coresAvailable++;
+
+    std::this_thread::sleep_for(std::chrono::seconds(DELAYS_PER_EXEC));
 
     if (processTerminatedFlag) {
         std::cout << "Process " << currentProcess->getProcessName() << " was prematurely terminated (FCFS)." << std::endl;

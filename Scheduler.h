@@ -18,6 +18,7 @@ private:
     int coresAvailable;
     int timeQuantum; // RR Implementation
 	static int quantumCycle; // remove after activity week 10
+    int DELAYS_PER_EXEC;
 
     static Scheduler* scheduler;
     std::vector<std::thread> coreThreads;
@@ -30,8 +31,8 @@ private:
     void rrScheduler(std::shared_ptr<Console> currentProcess, int coreId, bool allocatedMemory);
 
 public:
-    Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int coresAvailable, int timeQuantum, Scheduler::schedulingAlgorithm algo);
-    static void initialize(int numCores, int timeQuantum, string schedulingAlgorithm);
+    Scheduler(int numCores, bool isSchedulerRunning, int coresUsed, int coresAvailable, int timeQuantum, Scheduler::schedulingAlgorithm algo, int DELAYS_PER_EXEC);
+    static void initialize(int numCores, int timeQuantum, string schedulingAlgorithm, int DELAYS_PER_EXEC);
     static Scheduler* getInstance();
 
     void start();

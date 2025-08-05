@@ -104,7 +104,7 @@ void Initialize() {
     ConsoleManager::getInstance()->setMaxIns(MAX_INS);
     ConsoleManager::getInstance()->setMinIns(MIN_INS);
 	FlatMemoryAllocator::initialize(MAX_OVERALL_MEM, MEM_PER_FRAME); // initialize memory allocator
-    Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER); // initialize scheduler
+    Scheduler::initialize(NUM_CPU, QUANTUM_CYCLES, SCHEDULER, DELAYS_PER_EXEC); // initialize scheduler
     Scheduler::getInstance()->start();
     VMStat::initialize(MAX_OVERALL_MEM);
     cout << "total Frames: " << FlatMemoryAllocator::getInstance()->getTotalFrames();
