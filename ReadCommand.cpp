@@ -5,6 +5,16 @@ ReadCommand::ReadCommand(string processName, string address, string varName, std
 	: ICommand(processName, ICommand::READ, delay) {
 	this->varName = varName; 
 	this->address = address;
+	this->value = 0;
+	this->varTable = varTable;
+}
+
+size_t ReadCommand::hexStringToDecimal(const std::string& hexStr) {
+	size_t decimalValue = 0;
+	std::stringstream ss;
+	ss << std::hex << hexStr;
+	ss >> decimalValue;
+	return decimalValue;
 }
 
 void ReadCommand::execute() {
@@ -16,7 +26,7 @@ void ReadCommand::execute() {
 		auto keyVal = varTable->find(address);
 
 		// Check if symbol table pages are loaded 
-		int pages = console->getSymbolTablePages();
+		size_t pages = console->getSymbolTablePages();
 
 		for (int i = 0; i < pages; i++) {
 			if (!console->isPageLoaded(i)) {
@@ -25,26 +35,45 @@ void ReadCommand::execute() {
 		}
 
 		// Check existence in table
-		if (keyVal != varTable->end()) { // Exists: replace
-			keyVal->second = value;
+		if (keyVal != varTable->end()) {
+			value = keyVal->second;
+			(*varTable)[varName] = value;
 			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
-				"Read address (" + address + ") with value: " + std::to_string(value) + " and stored to " + varName;
+				"Read address (" + keyVal->first + ") with value: " + std::to_string(value) + " and stored to " + varName;
 			console->appendOutput(printLog);
 			return;
 		}
 
-		// TODO: Check if address accessed is within memory boundaries 
+		// Check if address accessed is within memory boundaries 
+		size_t memory_accessed = hexStringToDecimal(address);
 
+		std::shared_ptr<std::vector<PageInfo>> pageTable = console->getPageTable(); // Retrieve page table
+		int currentPage = console->getCurrentPage();
+		if ( currentPage < 0) { // If current instruction exceeds memory allocation, ignore
+			// return 
+			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
+				"Failed to read to address (" + address + "). Memory allocation full; instruction ignored";
+			console->appendOutput(printLog);
+			return;
+		}
+
+		// If address accessed is within memory boundaries
+		if (memory_accessed >= (*pageTable)[currentPage].startByte && memory_accessed <= (*pageTable)[currentPage].endByte) {
+			uint16_t valueStored = ConsoleManager::getInstance()->readAddress(address, processName);
+			(*varTable)[varName] = valueStored;
+			return;
+		}
 
 		// Doesnt exist, check if there is space. IDK if the address is initialized to 0 if it doesn't exist
-		/*if (varTable->size() >= 32) {
+		if (varTable->size() >= 32) {
 			std::string printLog = "[" + ConsoleManager::getCurrentTimeStamp() + "] " +
 				"Failed to read to address (" + address + "). Symbol table full; instruction ignored";
 			console->appendOutput(printLog);
-		}*/
+			return;
+		}
 
-		// Append value to symbol table
-		(*varTable)[varName] = 0;
-
+		// Append value to symbol table and read/write space
+		this->value = ConsoleManager::getInstance()->readAddress(address, processName);
+		(*varTable)[varName] = this->value;
 	}
 }

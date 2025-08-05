@@ -6,12 +6,13 @@ using namespace std;
 
 Console::Console(string processName, int currentLine, int totalLine, string timestamp, size_t mem_size)
 {
-	this->processName = processName;
-	this->currentLine = currentLine;
-	this->totalLine = totalLine;
-	this->timestamp = timestamp;
-	this->mem_size = mem_size;
+    this->processName = processName;
+    this->currentLine = currentLine;
+    this->totalLine = totalLine;
+    this->timestamp = timestamp;
+    this->mem_size = mem_size;
     this->varTable = make_shared<std::unordered_map<string, uint16_t>>();
+    this->pageTable = std::make_shared<std::vector<PageInfo>>(); // initialize shared_ptr
 }
 
 void Console::setProcessName(string processName)
@@ -87,18 +88,18 @@ std::vector<std::string> Console::getOutputBuffer() const {
 }
 
 void Console::initializePageTable(size_t MEM_PER_FRAME) {
-	this->memPerFrame = MEM_PER_FRAME; 
+	this->memPerFrame = MEM_PER_FRAME;
 	size_t pagesNeeded = (mem_size + MEM_PER_FRAME - 1) / MEM_PER_FRAME;
-	pageTable.resize(pagesNeeded);
+	pageTable->resize(pagesNeeded);
 }
 
 bool Console::isPageLoaded(int index) {
-	if (index > pageTable.size()) {
+	if (index > pageTable->size()) {
 		cout << "INDEX OUT OF BOUNDS: " << index;
 		return -1;
 	}
-	cout << "size: " << pageTable.size() << " index: " << index;
-	return pageTable[index].valid;
+	cout << "size: " << pageTable->size() << " index: " << index;
+	return (*pageTable)[index].valid;
 }
 
 int Console::getCurrentPage() {
@@ -120,17 +121,17 @@ size_t Console::getSymbolTablePages() {
 }
 
 void Console::setPageInfo(size_t index, size_t start, size_t end, bool isValid) {
-	pageTable[index].startByte = start;
-	pageTable[index].endByte = end;
-	pageTable[index].valid = isValid;
+	(*pageTable)[index].startByte = start;
+	(*pageTable)[index].endByte = end;
+	(*pageTable)[index].valid = isValid;
 	cout << "Updated pageTable[" << index << "] of "
 		<< processName
-		<< " startByte = " << pageTable[index].startByte << ", "
-		<< "endByte = " << pageTable[index].endByte << ", "
-		<< "valid = " << (pageTable[index].valid ? "true" : "false") << endl;
+		<< " startByte = " << (*pageTable)[index].startByte << ", "
+		<< "endByte = " << (*pageTable)[index].endByte << ", "
+		<< "valid = " << ((*pageTable)[index].valid ? "true" : "false") << endl;
 }
 
-const vector<PageInfo> Console::getPageTable(){
+std::shared_ptr<std::vector<PageInfo>> Console::getPageTable() {
 	return pageTable;
 }
 
