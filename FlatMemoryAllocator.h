@@ -25,7 +25,7 @@ public:
     bool allocate(size_t size, string processName, shared_ptr<Console> Console) override;
     void deallocate(string processName) override;
     void deallocateIndividualFrame(size_t frameIndex);
-    bool isPageLoaded(const std::string& processName, int pageNumber);
+    bool isPageLoaded(shared_ptr<Console> currentProcess);
     std::string visualizeMemory() override;
 
     bool getPointerToProcess(string processName);
@@ -38,7 +38,7 @@ public:
     void logMemoryStateToFile(const std::string& filename);
     void writePageToBackingStore(FrameInfo victimFrame);
     void loadPageFromBackingStore(string processName, std::shared_ptr<Console> console);
-    std::string evictOneProcessToBackingStore();
+    std::string evictOneProcessToBackingStore(shared_ptr<Console> currentProcess);
     bool isProcessActive(string processName) const;
 
 private:

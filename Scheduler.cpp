@@ -188,7 +188,7 @@
                     // check if process is already allocated memory
                     if (flatMemoryInstance->isProcessActive(currentProcess->getProcessName())) { // get process from list
                         cout << "memory is already allocated" << endl;
-                        allocatedMemory = flatMemoryInstance->getPointerToProcess(currentProcess->getProcessName());
+                        allocatedMemory = flatMemoryInstance->isPageLoaded(currentProcess);
 
                         if (!allocatedMemory) {
                             std::cout << "[Page Fault] Page 0 not found in memory. Reloading...\n";
@@ -216,7 +216,7 @@
                         /*std::cout << "[Core " << coreId << "] "
                                   << "Failed to allocate memory for process "
                                   << currentProcess->getProcessName() << ". Requeuing..." << std::endl;*/
-                        std::string evictedProcess = flatMemoryInstance->evictOneProcessToBackingStore();
+                        std::string evictedProcess = flatMemoryInstance->evictOneProcessToBackingStore(currentProcess);
                         std::this_thread::sleep_for(std::chrono::milliseconds(2000)); // FOR DEBUGGING TO PREVENT SPAM
                         // retry later by requeuing
                         {

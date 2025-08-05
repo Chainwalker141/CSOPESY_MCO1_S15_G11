@@ -141,13 +141,29 @@ void FlatMemoryAllocator::deallocateIndividualFrame(size_t frameIndex) {
     std::cout << "[Deallocate] Frame " << frameIndex << " from process " << processName << " deallocated.\n";
 }
 
-bool FlatMemoryAllocator::isPageLoaded(const std::string& processName, int pageNumber) {
-    for (const auto& [frameIndex, info] : frameMap) {
+bool FlatMemoryAllocator::isPageLoaded(shared_ptr<Console> currentProcess) {
+    const std::vector<PageInfo> pageTable = currentProcess->getPageTable();
+    bool flag = true;
+
+    /*for (const auto& [frameIndex, info] : frameMap) {
         if (info.processName == processName && info.pageNumber == pageNumber) {
             return true;
         }
-    }
-    return false;
+    }*/
+
+    for (const auto& page : pageTable) {
+        
+        if (page.valid) {
+			continue; // if page is valid, it is already loaded
+        }
+        else {
+            flag = false;
+        }
+        
+      
+	}
+
+    return flag;
 }
 
 // Visualize memory
@@ -378,7 +394,7 @@ void FlatMemoryAllocator::writePageToBackingStore(FrameInfo victimFrame) {
     outfile.close();
 }
 
-void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shared_ptr<Console> console) {
+void FlatMemoryAllocator::loadPageFromBackingStore(std::string processName, std::shared_ptr<Console> console) {
     std::ifstream infile("csopesy-backing-store.txt");
     if (!infile.is_open()) {
         std::cerr << "Error opening backing store.\n";
@@ -386,25 +402,70 @@ void FlatMemoryAllocator::loadPageFromBackingStore(string processName, std::shar
     }
 
     std::string line;
-    int pageNumber = -1;
+    std::vector<std::string> allLines;
+    std::vector<int> pageNumbers;
     bool found = false;
 
-    // Look for the latest occurrence of the process + PAGE entry
-    while (getline(infile, line)) {
-        if (line == "PROCESS " + processName) {
-            getline(infile, line); // Should be "PAGE X"
-            if (line.rfind("PAGE ", 0) == 0) {
-                pageNumber = std::stoi(line.substr(5));
-                found = true;
-                break;
+    // Read file into memory
+    while (std::getline(infile, line)) {
+        allLines.push_back(line);
+    }
+    infile.close();
+
+    // Prepare to filter out lines related to the process
+    std::vector<std::string> updatedLines;
+    for (size_t i = 0; i < allLines.size(); ++i) {
+        if (allLines[i] == "PROCESS " + processName) {
+            size_t j = i + 1;
+            while (j < allLines.size() && allLines[j].rfind("PAGE ", 0) == 0) {
+                int pageNumber = std::stoi(allLines[j].substr(5));
+                pageNumbers.push_back(pageNumber);
+                ++j;
             }
+            found = true;
+            i = j - 1;  // Skip these lines (PROCESS and its PAGEs)
+        }
+        else {
+            updatedLines.push_back(allLines[i]);
         }
     }
 
-	cout << "Loading page " << pageNumber << " for process " << processName << endl;
+    if (!found) {
+        std::cerr << "[DEBUG] No pages found in backing store for process: " << processName << std::endl;
+        return;
+    }
+
+    // Allocate the recovered pages
+    for (int pageNum : pageNumbers) {
+        std::cout << "[LOAD] Loading page " << pageNum << " for process " << processName << std::endl;
+
+        size_t dummySize = std::min(console->getMemSize(), (size_t)memPerFrame);
+        auto [startByte, endByte] = allocateAt(pageNum, dummySize, processName, pageNum);
+
+        if (startByte == (size_t)-1 && endByte == (size_t)-1) {
+            std::cerr << "[LOAD ERROR] Failed to allocate frame for page " << pageNum << " of process " << processName << std::endl;
+        }
+        else {
+            console->setPageInfo(pageNum, startByte, endByte, true);
+        }
+    }
+
+    // Rewrite the file without the loaded process/pages
+    std::ofstream outfile("csopesy-backing-store.txt", std::ios::trunc);
+    if (!outfile.is_open()) {
+        std::cerr << "Error rewriting backing store.\n";
+        return;
+    }
+
+    for (const std::string& remainingLine : updatedLines) {
+        outfile << remainingLine << "\n";
+    }
+
+    outfile.close();
 }
 
-std::string FlatMemoryAllocator::evictOneProcessToBackingStore() {
+
+std::string FlatMemoryAllocator::evictOneProcessToBackingStore(shared_ptr<Console> currentProcess) {
 	std::lock_guard<std::mutex> lock(frameListMutex);
 
     if (frameQueue.empty()) {
@@ -425,8 +486,11 @@ std::string FlatMemoryAllocator::evictOneProcessToBackingStore() {
     FrameInfo victimInfo = it->second;
     std::string victimProcess = it->second.processName;
 
+
 	cout << "Evicting Frame: " << victimFrameIndex << " to backing store." << endl;
 	writePageToBackingStore(victimInfo);
+
+	currentProcess->setPageInfo(victimInfo.pageNumber, -1, -1, false); // Mark the page as not loaded
 
 	deallocateIndividualFrame(victimFrameIndex); // Deallocate the first frame of the victim process
 
