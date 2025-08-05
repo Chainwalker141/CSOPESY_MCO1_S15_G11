@@ -128,11 +128,11 @@ void Console::setPageInfo(size_t index, size_t start, size_t end, bool isValid) 
 	pageTable[index].startByte = start;
 	pageTable[index].endByte = end;
 	pageTable[index].valid = isValid;
-	cout << "Updated pageTable[" << index << "] of "
+	/*cout << "Updated pageTable[" << index << "] of "
 		<< processName
 		<< " startByte = " << pageTable[index].startByte << ", "
 		<< "endByte = " << pageTable[index].endByte << ", "
-		<< "valid = " << (pageTable[index].valid ? "true" : "false") << endl;
+		<< "valid = " << (pageTable[index].valid ? "true" : "false") << endl;*/
 }
 
 const vector<PageInfo> Console::getPageTable(){
