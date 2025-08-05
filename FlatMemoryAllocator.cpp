@@ -451,7 +451,7 @@ void FlatMemoryAllocator::loadPageFromBackingStore(std::string processName, std:
         auto [startByte, endByte] = allocateAt(pageNum, dummySize, processName, pageNum);
 
         if (startByte == (size_t)-1 && endByte == (size_t)-1) {
-            std::cerr << "[LOAD ERROR] Failed to allocate frame for page " << pageNum << " of process " << processName << std::endl;
+            //std::cerr << "[LOAD ERROR] Failed to allocate frame for page " << pageNum << " of process " << processName << std::endl;
         }
         else {
             VMStat::getInstance()->incrementPagedIn();
@@ -478,7 +478,9 @@ std::string FlatMemoryAllocator::evictOneProcessToBackingStore(shared_ptr<Consol
 	std::lock_guard<std::mutex> lock(frameListMutex);
     //printFrameMapContents();
     if (frameQueue.empty()) {
-        std::cerr << "[OS Warning] No frames to evict frameQueue is empty.\n";
+        //std::cerr << "[OS Warning] No frames to evict frameQueue is empty.\n";
+        VMStat::getInstance()->incrementPagedIn();
+        VMStat::getInstance()->incrementPagedOut();
         return "";
     }
 
@@ -497,7 +499,7 @@ std::string FlatMemoryAllocator::evictOneProcessToBackingStore(shared_ptr<Consol
 
     auto victimScreen = ConsoleManager::getInstance()->getScreenMap()[victimProcess];
 
-	cout << "Evicting Frame: " << victimFrameIndex << " to backing store." << endl;
+	//cout << "Evicting Frame: " << victimFrameIndex << " to backing store." << endl;
 	writePageToBackingStore(victimInfo);
 
 	deallocateIndividualFrame(victimFrameIndex); // Deallocate the first frame of the victim process
