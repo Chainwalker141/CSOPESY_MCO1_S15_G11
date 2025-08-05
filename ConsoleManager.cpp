@@ -13,16 +13,22 @@
 #include "SubCommand.h"
 #include "SleepCommand.h"
 #include "ForCommand.h"
+#include "ReadCommand.h"
+#include "WriteCommand.h"
+#include "FlatMemoryAllocator.h"
 
 using namespace std;
 
 ConsoleManager* ConsoleManager::consoleManager = nullptr;
+std::shared_ptr<std::unordered_map<std::string, AddressBlock>> ConsoleManager::readWriteSpace = nullptr;
+std::mutex readWriteSpaceMutex;
 
 ConsoleManager::ConsoleManager() {
 };
 
 void ConsoleManager::initialize() {
     consoleManager = new ConsoleManager();
+    readWriteSpace = std::make_shared<std::unordered_map<string, AddressBlock>>();
 }
 
 ConsoleManager* ConsoleManager::getInstance()
@@ -73,7 +79,7 @@ void ConsoleManager::setMinIns(int minIns) {
     this->minIns = minIns;
 }
 
-std::string ConsoleManager::getCurrentTimeStamp() {
+string ConsoleManager::getCurrentTimeStamp() {
     std::time_t now = std::time(nullptr);
     std::tm localTime;
 #if defined(_WIN32) || defined(_WIN64)
@@ -158,7 +164,7 @@ int ConsoleManager::generateRandInt(int minIns, int maxIns) {
 }
 
 // helper command, trim strings
-inline std::string cmTrim(const std::string& str) {
+inline string cmTrim(const string& str) {
     const char* whitespace = " \t\n\r\f\v";
     size_t start = str.find_first_not_of(whitespace);
     if (start == std::string::npos) return ""; // All whitespace
@@ -309,35 +315,35 @@ void ConsoleManager::generateCommands(std::shared_ptr<Console> process, int DELA
     process->setCommandList(commandList);
 }
 
-// helper function for generateUserCommands
-std::shared_ptr<ICommand> ConsoleManager::parseInstruction(const std::string& line, std::shared_ptr<Console> process,int delays) {
-    std::istringstream iss(line);
-    std::string keyword;
+// helper function for generateUserCommands | parses the indiv string lines to create the commands
+shared_ptr<ICommand> ConsoleManager::parseInstruction(const string& line, shared_ptr<Console> process,int delays) {
+    istringstream iss(line);
+    string keyword;
     iss >> keyword;
 
     auto varTable = process->getVarTable();
-    std::string processName = process->getProcessName();
+    string processName = process->getProcessName();
 
     if (keyword == "DECLARE") {
-        std::string varName;
+        string varName;
         int value;
         iss >> varName >> value;
 
         int currentVarCount = static_cast<int>(varTable->size());
         if (currentVarCount >= 32) {
-            throw std::runtime_error("Variable limit exceeded: Only 32 variables allowed.");
+            throw runtime_error("Variable limit exceeded: Only 32 variables allowed.");
         }
 
         if (value < 0 || value > 65535) {
-            throw std::runtime_error("Variable value out of range: Must be between 0 and 65535 (uint16_t).");
+            throw runtime_error("Variable value out of range: Must be between 0 and 65535 (uint16_t).");
         }
 
-        return std::make_shared<DeclareCommand>(processName, varName, value, varTable, delays);
+        return make_shared<DeclareCommand>(processName, varName, value, varTable, delays);
     }
 
     else if (keyword == "PRINT") {
-        std::string remainder;
-        std::getline(iss, remainder);
+        string remainder;
+        getline(iss, remainder);
         remainder = cmTrim(remainder);
 
         if (remainder.front() == '(' && remainder.back() == ')') {
@@ -345,102 +351,132 @@ std::shared_ptr<ICommand> ConsoleManager::parseInstruction(const std::string& li
         }
 
         // split on '+' and trim each
-        std::vector<std::string> parts;
-        std::stringstream ss(remainder);
-        std::string segment;
-        while (std::getline(ss, segment, '+')) {
+        vector<string> parts;
+        stringstream ss(remainder);
+        string segment;
+        while (getline(ss, segment, '+')) {
             parts.push_back(cmTrim(segment));
         }
 
-        return std::make_shared<PrintCommand>(process->getProcessName(), parts, process->getVarTable(), delays);
+        return make_shared<PrintCommand>(process->getProcessName(), parts, process->getVarTable(), delays);
     }
 
     else if (keyword == "ADD") {
-        std::string dest, op1, op2;
+        string dest, op1, op2;
         iss >> dest >> op1 >> op2;
 
         // try to parse both operands as integers
-        bool isOp1Num = std::isdigit(op1[0]) || (op1[0] == '-' && std::isdigit(op1[1]));
-        bool isOp2Num = std::isdigit(op2[0]) || (op2[0] == '-' && std::isdigit(op2[1]));
+        bool isOp1Num = isdigit(op1[0]) || (op1[0] == '-' && isdigit(op1[1]));
+        bool isOp2Num = isdigit(op2[0]) || (op2[0] == '-' && isdigit(op2[1]));
 
         if (isOp1Num && isOp2Num) {
-            return std::make_shared<AddCommand>(processName, dest, std::stoi(op1), std::stoi(op2), varTable, delays);
+            return make_shared<AddCommand>(processName, dest, stoi(op1), stoi(op2), varTable, delays);
         }
         else if (!isOp1Num && isOp2Num) {
-            return std::make_shared<AddCommand>(processName, dest, op1, std::stoi(op2), varTable, delays);
+            return make_shared<AddCommand>(processName, dest, op1, stoi(op2), varTable, delays);
         }
         else if (isOp1Num && !isOp2Num) {
-            return std::make_shared<AddCommand>(processName, dest, std::stoi(op1), op2, varTable, delays);
+            return make_shared<AddCommand>(processName, dest, stoi(op1), op2, varTable, delays);
         }
         else {
-            return std::make_shared<AddCommand>(processName, dest, op1, op2, varTable, delays);
+            return make_shared<AddCommand>(processName, dest, op1, op2, varTable, delays);
         }
     }
 
     else if (keyword == "SUBTRACT") {
-        std::string dest, op1, op2;
+        string dest, op1, op2;
         iss >> dest >> op1 >> op2;
 
-        bool isOp1Num = std::isdigit(op1[0]) || (op1[0] == '-' && std::isdigit(op1[1]));
-        bool isOp2Num = std::isdigit(op2[0]) || (op2[0] == '-' && std::isdigit(op2[1]));
+        bool isOp1Num = isdigit(op1[0]) || (op1[0] == '-' && isdigit(op1[1]));
+        bool isOp2Num = isdigit(op2[0]) || (op2[0] == '-' && isdigit(op2[1]));
 
         if (isOp1Num && isOp2Num) {
-            return std::make_shared<SubCommand>(processName, dest, std::stoi(op1), std::stoi(op2), varTable, delays);
+            return make_shared<SubCommand>(processName, dest, stoi(op1), stoi(op2), varTable, delays);
         }
         else if (!isOp1Num && isOp2Num) {
-            return std::make_shared<SubCommand>(processName, dest, op1, std::stoi(op2), varTable, delays);
+            return make_shared<SubCommand>(processName, dest, op1, stoi(op2), varTable, delays);
         }
         else if (isOp1Num && !isOp2Num) {
-            return std::make_shared<SubCommand>(processName, dest, std::stoi(op1), op2, varTable, delays);
+            return make_shared<SubCommand>(processName, dest, stoi(op1), op2, varTable, delays);
         }
         else {
-            return std::make_shared<SubCommand>(processName, dest, op1, op2, varTable, delays);
+            return make_shared<SubCommand>(processName, dest, op1, op2, varTable, delays);
         }
     }
 
     else if (keyword == "SLEEP") {
         int time;
         iss >> time;
-        return std::make_shared<SleepCommand>(processName, "Sleeping for ", time, delays);
+        return make_shared<SleepCommand>(processName, "Sleeping for ", time, delays);
     }
 
     else if (keyword == "FOR") {
         int start, end;
         iss >> start >> end;
 
-        auto forCmd = std::make_shared<ForCommand>(processName, "forLoop", start, end, delays);
-        forCmd->addCommand(std::make_shared<AddCommand>(processName, "var3", 2, 2, varTable, delays));
+        auto forCmd = make_shared<ForCommand>(processName, "forLoop", start, end, delays);
+        forCmd->addCommand(make_shared<AddCommand>(processName, "var3", 2, 2, varTable, delays));
         return forCmd;
     }
 
+    else if (keyword == "READ") {
+        string address, varName;
+        iss >> address >> varName;
+
+        if (address.empty() || varName.empty()) {
+            throw runtime_error("Invalid Command. Missing READ command arguments.");
+        }
+
+        return make_shared<ReadCommand>(processName, address, varName, varTable, delays);
+    }
+
+    else if (keyword == "WRITE") {
+        string address, valueOrVar;
+        iss >> address >> valueOrVar;
+
+        if (address.empty() || valueOrVar.empty()) {
+            throw runtime_error("Invalid Command. Missing READ command arguments.");
+        }
+
+        // Detect if it's a number (literal) or variable name
+        bool isNumeric = isdigit(valueOrVar[0]) || (valueOrVar[0] == '-' && valueOrVar.size() > 1 && isdigit(valueOrVar[1]));
+
+        if (isNumeric) {
+            uint16_t value = static_cast<uint16_t>(stoi(valueOrVar));
+            return make_shared<WriteCommand>(processName, address, value, varTable, delays);
+        }
+        else {
+            return make_shared<WriteCommand>(processName, address, valueOrVar, varTable, delays);
+        }
+    }
     else {
-        throw std::runtime_error("Unknown command: " + keyword);
+        throw runtime_error("Unknown command: " + keyword);
     }
 }
 
 // for screen -c
-void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, const std::vector<std::string>& instructions, int DELAYS_PER_EXEC) {
-    std::queue<std::shared_ptr<ICommand>> commandList;
+void ConsoleManager::generateUserCommands(shared_ptr<Console> process, const vector<string>& instructions, int DELAYS_PER_EXEC) {
+    queue<shared_ptr<ICommand>> commandList;
     auto varTable = process->getVarTable();
-    std::string processName = process->getProcessName();
+    string processName = process->getProcessName();
 
-    int memSize = process->getMemSize();
-    int maxInstructions = (memSize - 64) / 2;
+    size_t memSize = process->getMemSize();
+    size_t maxInstructions = (memSize - 64) / 2;
     if (instructions.size() > maxInstructions) {
-        throw std::runtime_error(
-            "Invalid Command.\nInstruction count exceeds memory limit. Max allowed: " + std::to_string(maxInstructions)
+        throw runtime_error(
+            "Invalid Command.\nInstruction count exceeds memory limit. Max allowed: " + to_string(maxInstructions)
         );
     }
 
     for (const auto& line : instructions) {
         try {
-            std::shared_ptr<ICommand> cmd = parseInstruction(line, process, DELAYS_PER_EXEC);
+            shared_ptr<ICommand> cmd = parseInstruction(line, process, DELAYS_PER_EXEC);
             commandList.push(cmd);
-            std::cout << "[Parsed] " << line << std::endl; // debug
+            cout << "[Parsed] " << line << endl; // debug
         }
-        catch (const std::exception& e) {
-            std::cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << std::endl;
-            std::cerr << "Invalid Command\n";
+        catch (const exception& e) {
+            cerr << "[screen -c] Failed to parse: \"" << line << "\" - " << e.what() << endl;
+            cerr << "Invalid Command\n";
         }
     }
 
@@ -453,6 +489,63 @@ void ConsoleManager::generateUserCommands(std::shared_ptr<Console> process, cons
 
 unordered_map<string, shared_ptr<Console>> ConsoleManager::getScreenMap() {
     return this->screenMap;
+}
+
+void ConsoleManager::writeToAddress(string address, string processName, uint16_t value)
+{
+    std::lock_guard<std::mutex> lock(readWriteSpaceMutex);
+
+    // Ensure readWriteSpace is initialized
+    if (!readWriteSpace) {
+        readWriteSpace = std::make_shared<std::unordered_map<string, AddressBlock>>();
+    }
+
+    std::string key = address;
+
+    auto it = readWriteSpace->find(key);
+    if (it != readWriteSpace->end() && it->second.processName != processName) { // Accessing address from a different process
+        // Memory Access Error
+        cout << "Process " + processName + "accessed memory out of its scope.";
+        return;
+    }
+
+    // Write value to the AddressBlock (assuming AddressBlock has a suitable interface)
+    (*readWriteSpace)[key].value = value;
+    (*readWriteSpace)[key].processName = processName;
+}
+
+uint16_t ConsoleManager::readAddress(string address, string processName)
+{
+    std::lock_guard<std::mutex> lock(readWriteSpaceMutex);
+
+    // Ensure readWriteSpace is initialized
+    if (!readWriteSpace) {
+        readWriteSpace = std::make_shared<std::unordered_map<string, AddressBlock>>();
+    }
+
+    std::string key = address;
+
+    auto it = readWriteSpace->find(key);
+
+    //if (it == readWriteSpace->end()) {
+    //    return it->second.value;
+    //}
+
+    if (it == readWriteSpace->end()) {
+        (*readWriteSpace)[address].processName = processName;
+        (*readWriteSpace)[address].value = 0;
+        return 0;
+    }
+     
+    if (it->second.processName != processName) {
+        cout << "Process " + processName + "accessed memory out of its scope.";
+        // Memory Access error 
+        // Kill program
+        return 999;
+    }
+
+    return it->second.value;
+    // Return 0 or handle as needed if not found or processName mismatch
 }
 
 // screen -ls

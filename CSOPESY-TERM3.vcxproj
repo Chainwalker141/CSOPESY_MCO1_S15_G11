@@ -136,9 +136,12 @@
     <ClCompile Include="ForCommand.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PrintCommand.cpp" />
+    <ClCompile Include="ReadCommand.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="SleepCommand.cpp" />
     <ClCompile Include="SubCommand.cpp" />
+    <ClCompile Include="WriteCommand.cpp" />
+    <ClCompile Include="VMStat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddCommand.h" />
@@ -151,9 +154,12 @@
     <ClInclude Include="IMemoryAllocator.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="PrintCommand.h" />
+    <ClInclude Include="ReadCommand.h" />
     <ClInclude Include="Scheduler.h" />
     <ClInclude Include="SleepCommand.h" />
     <ClInclude Include="SubCommand.h" />
+    <ClInclude Include="WriteCommand.h" />
+    <ClInclude Include="VMStat.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
